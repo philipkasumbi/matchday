@@ -1,4 +1,5 @@
-from app import app, db, User, Team
+from app import app, db, User, Team, AvailabilityPost
+from datetime import date
 
 def seed_database():
     with app.app_context():
@@ -46,6 +47,24 @@ def seed_database():
         test_user = User.query.filter_by(name="Kasumbi").first()
         print(f"Query: Which team does {test_user.name} manage?")
         print(f"Answer: {test_user.team.name} (Format: {test_user.team.format})")
+
+        sunday_post = AvailabilityPost(
+            date=date(2026, 11, 1),
+            time_window="3:00 PM - 5:00 PM",
+            pitch_status="HAVE_PITCH",
+            team_id=kutha_fc.id
+        )
+
+        db.session.add(sunday_post)
+        db.session.commit()
+        print(f"Created {sunday_post}")
+
+        team_posts = test_team.posts
+
+        print(f"Team: {test_team.name}")
+        print(f"Number of active posts: {len(team_posts)}")
+        for post in team_posts:
+            print(f" - Seeking opponent for: {post.date} at {post.time_window}. Status: {post.status}")
 
 
 if __name__ == "__main__":
