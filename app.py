@@ -91,5 +91,15 @@ def accept_match(request_id):
 
     return f"Match {request_id} Accepted successfully!"
 
+@app.route('/search')
+def search_posts():
+    open_posts = AvailabilityPost.query.filter_by(status="OPEN").all()
+    results = "Open Matches:<br>"
+    for post in open_posts:
+        results += f"Post ID: {post.id} | Post Date: {post.date} | Time: {post.time_window} | Pitch: {post.pitch_status}<br>"
+    return results
+
+
+
 if __name__ == "__main__":
     app.run(debug=True)

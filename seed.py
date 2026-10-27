@@ -1,3 +1,5 @@
+from os import name
+
 from app import app, db, User, Team, AvailabilityPost, MatchRequest
 from datetime import date
 
@@ -25,6 +27,24 @@ def seed_database():
         db.session.add(sunday_post)
         db.session.commit()
         print("Created Kutha Fc and their Sunday availability post.")
+
+        # create another host team
+        another_host = User(
+            name = "tabby",
+            phone = "0702300281"
+        )
+        db.session.add(another_host)
+        db.session.commit()
+
+        nyuani_fc = Team(name= "Nyuani Fc",home_area="Kitui Town", level="Competitive", has_home_pitch=True,
+                        captain_id=another_host.id)
+        db.session.add(nyuani_fc)
+        db.session.commit()
+
+        nyuani_sunday_post = AvailabilityPost(date=date(2026, 11, 1), time_window="3:00 PM - 5:00 PM",
+                                       pitch_status="HAVE_PITCH", team_id=kutha_fc.id)
+        db.session.add(nyuani_sunday_post)
+        db.session.commit()
 
         # --- CHALLENGER TEAM 1 (Kitui United) ---
         captain_john = User(name="John", phone="0711223344")
@@ -58,6 +78,7 @@ def seed_database():
         db.session.commit()
 
         print("\n--- Current Database State ---")
+        print(f"Available Posts: {len(AvailabilityPost.query.filter_by(status="OPEN").all())}")
         print(f"Post Status: {sunday_post.status}")
         print(f"Request 1 (Kitui United) ID: {request_1.id} | Status: {request_1.status}")
         print(f"Request 2 (Mwingi Rovers) ID: {request_2.id} | Status: {request_2.status}")
