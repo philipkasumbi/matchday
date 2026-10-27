@@ -52,7 +52,6 @@ class AvailabilityPost(db.Model):
 
     # State machine: 'OPEN', 'CONFIRMED', 'EXPIRED'
     status = db.Column(db.String(20), nullable=False, default='OPEN')
-
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     # The Foreign Key linking back to the Team
@@ -61,9 +60,36 @@ class AvailabilityPost(db.Model):
     def __repr__(self):
         return f"<Post {self.date} ({self.status}) by Team ID {self.team_id}>"
 
+
+class MatchRequest(db.Model):
+    id = db.Column(db.Integer, primary_key= True)
+    status = db.Column(db.String(20), nullable = False, default = "PENDING")
+    message = db.Column(db.String(200),nullable=True)
+    post_id = db.Column(db.Integer,db.ForeignKey("availability_post.id"),nullable = False)
+    requesting_team_id = db.Column(db.Integer,db.ForeignKey("team.id"),nullable = False)
+    created_at = db.Column(db.DateTime, server_default = db.func.now())
+    # relationships
+    post = db.relationship("AvailabilityPost",backref="match_requests")
+    requesting_team = db.relationship("Team", foreign_keys=[requesting_team_id])
+
+
 @app.route("/")
 def home():
     return "MatchDay Api is Running"
+
+@app.route('/accept/<int:request_id>')
+def accept_match(request_id):
+    match_req = MatchRequest.query.get(request_id)
+    match_req.status = "ACCEPTED"
+    related_post = match_req.post
+    related_post.status = "CONFIRMED"
+    for request in related_post.match_requests:
+        if request.id != match_req.id:
+            request.status = "CANCELLED_AUTO"
+
+    db.session.commit()
+
+    return f"Match {request_id} Accepted successfully!"
 
 if __name__ == "__main__":
     app.run(debug=True)
