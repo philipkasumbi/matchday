@@ -17,7 +17,7 @@ def seed_database():
         db.session.add(captain_kasumbi)
         db.session.commit()
 
-        kutha_fc = Team(name="Kutha Fc", home_area="Kitui Town", level="Competitive", has_home_pitch=True,
+        kutha_fc = Team(name="Kutha Fc", home_area="Mutonguni ward", level="Competitive", has_home_pitch=True,
                         captain_id=captain_kasumbi.id)
         db.session.add(kutha_fc)
         db.session.commit()
@@ -36,13 +36,13 @@ def seed_database():
         db.session.add(another_host)
         db.session.commit()
 
-        nyuani_fc = Team(name= "Nyuani Fc",home_area="Kitui Town", level="Competitive", has_home_pitch=True,
+        nyuani_fc = Team(name= "Nyuani Fc",home_area="Kitui Central", level="Competitive", has_home_pitch=True,
                         captain_id=another_host.id)
         db.session.add(nyuani_fc)
         db.session.commit()
 
         nyuani_sunday_post = AvailabilityPost(date=date(2026, 11, 1), time_window="3:00 PM - 5:00 PM",
-                                       pitch_status="HAVE_PITCH", team_id=kutha_fc.id)
+                                       pitch_status="HAVE_PITCH", team_id=nyuani_fc.id)
         db.session.add(nyuani_sunday_post)
         db.session.commit()
 
