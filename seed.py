@@ -42,7 +42,7 @@ def seed_database():
         db.session.commit()
 
         nyuani_sunday_post = AvailabilityPost(date=date(2026, 11, 1), time_window="3:00 PM - 5:00 PM",
-                                       pitch_status="HAVE_PITCH", team_id=nyuani_fc.id)
+                                       pitch_status="NEED_PITCH", team_id=nyuani_fc.id)
         db.session.add(nyuani_sunday_post)
         db.session.commit()
 

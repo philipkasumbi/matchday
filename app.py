@@ -95,29 +95,23 @@ def accept_match(request_id):
 def search_posts():
     open_posts = AvailabilityPost.query.filter_by(status="OPEN").all()
     location = request.args.get("area", "").strip()
+    pitch_availability = request.args.get("pitch", "").strip()
 
     results = "Open Matches:<br>"
-    if location:
-        found_match = False
+    found_match = False
 
-        for post in open_posts:
-            if location.lower() in post.team.home_area.lower():
-                results += f"Post ID: {post.id} | Post Date: {post.date} | Time: {post.time_window} | Pitch: {post.pitch_status}<br>"
-                found_match = True
+    for post in open_posts:
+        location_matches = not location or location.lower() in post.team.home_area.lower()
+        pitch_matches = not pitch_availability or  pitch_availability.lower() == post.pitch_status.lower()
 
-        if not found_match:
-            results = "No open matches found in this area.<br>"
-
-    else:
-        for post in open_posts:
+        if location_matches and pitch_matches:
             results += f"Post ID: {post.id} | Post Date: {post.date} | Time: {post.time_window} | Pitch: {post.pitch_status}<br>"
+            found_match= True
 
-        if not open_posts:
-            results = "No open matches available.<br>"
+    if not  found_match:
+        results = "No open matches available.<br>"
 
     return results
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)
