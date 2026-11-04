@@ -1,22 +1,40 @@
-from flask import Flask,request
+from flask import Flask, request, render_template, url_for
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from werkzeug.utils import redirect
+import os
+from dotenv import load_dotenv
 
 app = Flask(__name__)
+
+load_dotenv()
 
 # 1. Database Configuration
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///matchday.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 # 2. Initialize the Database
 db = SQLAlchemy(app)
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+login_manager.login_view = "login"
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, int(user_id))
+
 # 3. Define the user model(Table)
-class User(db.Model):
+class User(UserMixin,db.Model):
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(100), nullable = False)
     phone = db.Column(db.String(20), unique=True,nullable=False)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
+    password_hash = db.Column(db.String(255), nullable=False)
 
     # This creates the link from the User to the Team
     team = db.relationship('Team', backref='captain', uselist=False)
@@ -63,7 +81,7 @@ class AvailabilityPost(db.Model):
 
 class MatchRequest(db.Model):
     id = db.Column(db.Integer, primary_key= True)
-    status = db.Column(db.String(20), nullable = False, default = "PENDING")
+    status = db.Column(db.String(20), nullable = False, default ="PENDING")
     message = db.Column(db.String(200),nullable=True)
     post_id = db.Column(db.Integer,db.ForeignKey("availability_post.id"),nullable = False)
     requesting_team_id = db.Column(db.Integer,db.ForeignKey("team.id"),nullable = False)
@@ -76,6 +94,56 @@ class MatchRequest(db.Model):
 @app.route("/")
 def home():
     return "MatchDay Api is Running"
+
+# register route
+@app.route("/register",methods=["GET","POST"])
+def register():
+    if request.method == "POST":
+        name = request.form.get("captain_name")
+        phone = request.form.get("phone")
+        password = request.form.get("password")
+
+        # check if number exists
+        existing_user = User.query.filter_by(phone=phone).first()
+        if existing_user:
+            return "This phone number is already registered!"
+
+        hashed_password = generate_password_hash(password)
+
+        new_user = User(
+            name = name,
+            phone = phone,
+            password_hash = hashed_password
+        )
+
+        db.session.add(new_user)
+        db.session.commit()
+
+        return "Registration Successful!"
+
+    return render_template("register.html")
+
+# login route
+@app.route("/login",methods =["GET","POST"])
+def login():
+    if request.method == "POST":
+        phone_number = request.form.get("phone_number")
+        password = request.form.get("password")
+
+        existing_user = User.query.filter_by(phone=phone_number).first()
+        if existing_user:
+            password_match = check_password_hash(existing_user.password_hash, password)
+            if password_match:
+                login_user(existing_user)
+                return redirect(url_for("home"))
+            else:
+                return "Incorrect Password"
+        else:
+            return "User doesn't Exist"
+
+
+    return render_template("login.html")
+
 
 @app.route('/accept/<int:request_id>')
 def accept_match(request_id):
@@ -100,18 +168,34 @@ def search_posts():
     results = "Open Matches:<br>"
     found_match = False
 
+    #multi-parameter search filtering
     for post in open_posts:
         location_matches = not location or location.lower() in post.team.home_area.lower()
         pitch_matches = not pitch_availability or  pitch_availability.lower() == post.pitch_status.lower()
 
         if location_matches and pitch_matches:
-            results += f"Post ID: {post.id} | Post Date: {post.date} | Time: {post.time_window} | Pitch: {post.pitch_status}<br>"
+            results += f"Post ID: {post.id} | Post Date: {post.date} | Time: {post.time_window} | Pitch: {post.pitch_status}| <a href='/request-match/{post.id}'>Request Match</a><br>"
             found_match= True
 
     if not  found_match:
         results = "No open matches available.<br>"
 
     return results
+
+# request match handler
+@app.route("/request-match/<int:post_id>")
+def confirm_match(post_id):
+   post = db.session.get(AvailabilityPost, post_id)
+   if post and post.status=="OPEN":
+       logged_captain = User.name
+       team= logged_captain.team
+       requesting_id_team = team.id
+
+
+
+with app.app_context():
+    db.create_all()
+
 
 if __name__ == "__main__":
     app.run(debug=True)

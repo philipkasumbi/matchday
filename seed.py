@@ -1,5 +1,3 @@
-from os import name
-
 from app import app, db, User, Team, AvailabilityPost, MatchRequest
 from datetime import date
 
