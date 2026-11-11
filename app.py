@@ -1,6 +1,5 @@
-from flask import Flask, request, render_template, url_for
+from flask import Flask, request, render_template, url_for,flash,redirect
 from flask_sqlalchemy import SQLAlchemy
-from datetime import date
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.utils import redirect
@@ -165,8 +164,7 @@ def search_posts():
     location = request.args.get("area", "").strip()
     pitch_availability = request.args.get("pitch", "").strip()
 
-    results = "Open Matches:<br>"
-    found_match = False
+    matching_posts = []
 
     #multi-parameter search filtering
     for post in open_posts:
@@ -174,23 +172,44 @@ def search_posts():
         pitch_matches = not pitch_availability or  pitch_availability.lower() == post.pitch_status.lower()
 
         if location_matches and pitch_matches:
-            results += f"Post ID: {post.id} | Post Date: {post.date} | Time: {post.time_window} | Pitch: {post.pitch_status}| <a href='/request-match/{post.id}'>Request Match</a><br>"
-            found_match= True
+            matching_posts.append(post)
 
-    if not  found_match:
-        results = "No open matches available.<br>"
 
-    return results
+    return render_template("search.html", posts=matching_posts)
 
 # request match handler
 @app.route("/request-match/<int:post_id>")
-def confirm_match(post_id):
+@login_required
+def request_match(post_id):
    post = db.session.get(AvailabilityPost, post_id)
    if post and post.status=="OPEN":
-       logged_captain = User.name
-       team= logged_captain.team
-       requesting_id_team = team.id
+       if current_user.team:
+           if post.team != current_user.team:
+               existing_request = MatchRequest.query.filter(
+                   MatchRequest.post_id == post_id,
+                   MatchRequest.requesting_team_id == current_user.team.id
+               ).first()
+               if not existing_request:
+                   request = MatchRequest(
+                       message = "Hey we are available!",
+                       post_id= post.id,
+                       requesting_team_id=current_user.team.id
+                   )
+                   db.session.add(request)
+                   db.session.commit()
 
+                   flash("Your match request has been sent successfully!")
+                   return redirect(url_for("search"))
+
+               else:
+                   return "Your team has already requested this match."
+
+           else:
+               return "You cannot request your own team's post."
+       else:
+           return "You need to register a team before requesting a match."
+   else:
+       return "Ooops the post is not open for requesting"
 
 
 with app.app_context():
