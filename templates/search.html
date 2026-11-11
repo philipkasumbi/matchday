@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Available Posts</title>
+</head>
+<body>
+    <h1>Find a Match</h1>
+
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    {% endwith %}
+
+    {% if posts %}
+        {% for post in posts %}
+            <div>
+                <h3>Post #{{ post.id }}</h3>
+                <p>Location: {{ post.team.home_area }}</p>
+                <p>Date: {{ post.date }}</p>
+                <p>Time: {{ post.time_window }}</p>
+                <p>Pitch: {{ post.pitch_status }}</p>
+
+                <a href="{{ url_for('request_match', post_id=post.id) }}">
+                    Request Match
+                </a>
+            </div>
+
+        {% endfor %}
+    {% else %}
+        <p>No open matches available.</p>
+    {% endif %}
+</body>
+</html>
