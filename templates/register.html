@@ -6,6 +6,13 @@
 </head>
 <body>
  <h1>Join MatchDay</h1>
+
+ {% with messages = get_flashed_messages() %}
+{% for message in messages %}
+<p>{{ message }}</p>
+{% endfor %}
+{% endwith %}
+
 <form method="POST" action="/register">
     <label>Captain name:</label>
     <input type="text" name="captain_name" required>

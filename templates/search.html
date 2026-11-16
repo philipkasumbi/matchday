@@ -19,7 +19,7 @@
                 <h3>Post #{{ post.id }}</h3>
                 <p>Location: {{ post.team.home_area }}</p>
                 <p>Date: {{ post.date }}</p>
-                <p>Time: {{ post.time_window }}</p>
+<!--                <p>Time: {{ post.time_window }}</p>-->
                 <p>Pitch: {{ post.pitch_status }}</p>
 
                 <a href="{{ url_for('request_match', post_id=post.id) }}">
