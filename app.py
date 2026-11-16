@@ -177,6 +177,38 @@ def search_posts():
 
     return render_template("search.html", posts=matching_posts)
 
+# create a team for a logged-in captain
+@app.route("/register-team",methods=["POST","GET"])
+@login_required
+def register_team():
+    if request.method == "POST":
+        team_name = request.form.get("name")
+        home_area = request.form.get("home_area")
+        format = request.form.get("format")
+        level = request.form.get("level")
+        home_pitch = request.form.get("has_home_pitch")
+        has_home_pitch = home_pitch.strip().lower() == "yes"
+
+
+        if current_user.team:
+            return "The team is already Registered"
+
+        team = Team(
+            name = team_name,
+            home_area = home_area,
+            format = format,
+            level = level,
+            has_home_pitch = has_home_pitch,
+            captain_id = current_user.id
+        )
+
+        db.session.add(team)
+        db.session.commit()
+        flash("You have successfully registered your team")
+        return  redirect(url_for("home"))
+
+    return render_template("register_team.html")
+
 # request match handler
 @app.route("/request-match/<int:post_id>")
 @login_required
