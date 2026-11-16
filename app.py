@@ -146,20 +146,6 @@ def login():
     return render_template("login.html")
 
 
-@app.route('/accept/<int:request_id>')
-def accept_match(request_id):
-    match_req = MatchRequest.query.get(request_id)
-    match_req.status = "ACCEPTED"
-    related_post = match_req.post
-    related_post.status = "CONFIRMED"
-    for request in related_post.match_requests:
-        if request.id != match_req.id:
-            request.status = "CANCELLED_AUTO"
-
-    db.session.commit()
-
-    return f"Match {request_id} Accepted successfully!"
-
 @app.route('/search')
 def search_posts():
     open_posts = AvailabilityPost.query.filter_by(status="OPEN").all()
@@ -270,6 +256,74 @@ def request_match(post_id):
            return "You need to register a team before requesting a match."
    else:
        return "Ooops the post is not open for requesting"
+
+# accept match requests
+@app.route("/inbox")
+@login_required
+def inbox():
+    if current_user.team:
+        captains_posts = current_user.team.posts
+        incoming_requests = []
+        for post in captains_posts:
+            match_requests = post.match_requests
+            for match_request in match_requests:
+                match_request_id = match_request.id
+                requesting_team = match_request.requesting_team.name
+                status = match_request.status
+                message = match_request.message
+                incoming_requests.append({
+                    "match_request_id":match_request_id,
+                    "requesting_team":requesting_team,
+                    "status":status,
+                    "message":message
+                })
+
+        pending_requests = []
+        for request in incoming_requests:
+            if request["status"] == "PENDING":
+                pending_requests.append(request)
+
+        accepted_requests = []
+        for request in incoming_requests:
+            if request["status"] == "ACCEPTED":
+                accepted_requests.append(request)
+
+        declined_requests = []
+        for request in incoming_requests:
+            if request["status"] == "DECLINED":
+                declined_requests.append(request)
+
+        return render_template("inbox.html",pending_requests=pending_requests,accepted_requests=accepted_requests,declined_requests=declined_requests)
+    flash("You don't have a registered team")
+    return redirect(url_for("register_team"))
+
+
+# accept Match
+@app.route('/accept/<int:request_id>',methods=["POST"])
+@login_required
+def accept_match(request_id):
+    match_req = db.session.get(MatchRequest, request_id)
+
+    if not match_req:
+        return "Match request not found"
+
+    if not current_user.team or match_req.post.team != current_user.team:
+        return "You are not authorized to accept this request"
+
+    if match_req.status != "PENDING" or match_req.post.status != "OPEN":
+        return "This request is no longer available"
+
+    match_req.status = "ACCEPTED"
+
+    for other_request in match_req.post.match_requests:
+        if other_request.id != match_req.id and other_request.status == "PENDING":
+            other_request.status = "CANCELLED_AUTO"
+
+    match_req.post.status = "CLOSED"
+    db.session.commit()
+
+    flash("Match request accepted successfully!")
+    return redirect(url_for("inbox"))
 
 
 with app.app_context():

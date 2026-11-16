@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inbox</title>
+</head>
+<body>
+
+<h1>Pending Requests</h1>
+{% for request in pending_requests %}
+<div>
+    <p>Request ID: {{ request.match_request_id }}</p>
+    <p>Team: {{ request.requesting_team }}</p>
+    <p>Status: {{ request.status }}</p>
+    <p>Message: {{ request.message }}</p>
+    <form action="{{ url_for('accept_match', request_id=request.match_request_id) }}" method="POST">
+    <button type="submit">Accept</button>
+    </form>
+      <br>  <br>
+</div>
+{% endfor %}
+
+<h1>Accepted Requests</h1>
+{% for request in accepted_requests %}
+<div>
+    <p>Request ID: {{ request.match_request_id }}</p>
+    <p>Team: {{ request.requesting_team }}</p>
+    <p>Status: {{ request.status }}</p>
+    <p>Message: {{ request.message }}</p>
+
+</div>
+{% endfor %}
+
+<h1>Declined Requests</h1>
+{% for request in declined_requests %}
+<div>
+    <p>Request ID: {{ request.match_request_id }}</p>
+    <p>Team: {{ request.requesting_team }}</p>
+    <p>Status: {{ request.status }}</p>
+    <p>Message: {{ request.message }}</p>
+</div>
+{% endfor %}
+
+</body>
+</html>
