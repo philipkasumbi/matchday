@@ -5,6 +5,7 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.utils import redirect
 import os
 from dotenv import load_dotenv
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -61,8 +62,8 @@ class Team(db.Model):
 
 class AvailabilityPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    date = db.Column(db.Date, nullable=False)
-    time_window = db.Column(db.String(50), nullable=False)  # e.g., '2:00 PM - 4:00 PM'
+    date = db.Column(db.DateTime, nullable=False)
+    # time_window = db.Column(db.String(50), nullable=False)  # e.g., '2:00 PM - 4:00 PM'
 
     # The crucial pitch filter: 'HAVE_PITCH', 'NEED_PITCH', 'NEUTRAL'
     pitch_status = db.Column(db.String(20), nullable=False)
@@ -138,7 +139,8 @@ def login():
             else:
                 return "Incorrect Password"
         else:
-            return "User doesn't Exist"
+            flash("User doesn't Exist")
+            return redirect(url_for("register"))
 
 
     return render_template("login.html")
@@ -209,6 +211,32 @@ def register_team():
 
     return render_template("register_team.html")
 
+# create an availability post
+@app.route("/posts",methods=["POST","GET"])
+@login_required
+def team_posts():
+    if request.method == "POST":
+        date_input = request.form.get("date")
+        date = datetime.fromisoformat(date_input)
+        pitch_status = request.form.get("pitch_status")
+
+        if current_user.team:
+            post = AvailabilityPost(
+                date = date,
+                pitch_status = pitch_status,
+                team_id = current_user.team.id
+            )
+
+            db.session.add(post)
+            db.session.commit()
+
+            flash("Post Created successfully")
+            return redirect(url_for("home"))
+        flash("Register a Team First")
+        return redirect(url_for("register_team"))
+
+    return render_template("posts.html")
+
 # request match handler
 @app.route("/request-match/<int:post_id>")
 @login_required
@@ -231,7 +259,7 @@ def request_match(post_id):
                    db.session.commit()
 
                    flash("Your match request has been sent successfully!")
-                   return redirect(url_for("search"))
+                   return redirect(url_for("search_posts"))
 
                else:
                    return "Your team has already requested this match."

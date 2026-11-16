@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Team Posts</title>
+</head>
+<body>
+<h1>Create a Post</h1>
+
+{% with messages = get_flashed_messages() %}
+{% for message in messages %}
+<p>{{ message }}</p>
+{% endfor %}
+{% endwith %}
+
+
+<form action="{{ url_for('team_posts') }}" method="POST">
+  <label>Date:</label>
+  <input type="datetime-local" name="date" required>
+  <br><br>
+  <label>Pitch Status:</label>
+  <select name="pitch_status" required>
+    <option>HAVE PITCH</option>
+    <option>NEED PITCH</option>
+    <option>NEUTRAL</option>
+  </select>
+  <br><br>
+
+  <button type="submit">Submit</button>
+
+</form>
+</body>
+</html>
