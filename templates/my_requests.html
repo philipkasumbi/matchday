@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Requests</title>
+</head>
+<body>
+<h1>My Requests</h1>
+
+{% for request in team_requests %}
+<div>
+    <p>Receiving team:{{ request.post.team.name }}</p>
+     <p>Post ID:{{ request.post_id }}</p>
+    <p>Message:{{ request.message }}</p>
+    <p>status:{{ request.status }}</p>
+</div>
+{% else %}
+<p>No Requests Send</p>
+{% endfor %}
+</body>
+</html>

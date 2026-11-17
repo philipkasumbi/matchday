@@ -325,6 +325,22 @@ def accept_match(request_id):
     flash("Match request accepted successfully!")
     return redirect(url_for("inbox"))
 
+#display declined or accepted on the request sender inbox
+"""
+check that the logged-in captain has a registered team 
+retrieve all MatchRequest records where requesting_team_id matches current_user.team.id
+pass those requests to a template called my_requests.html
+"""
+
+@app.route("/my_requests")
+@login_required
+def my_requests():
+    if current_user.team:
+        all_team_requests = MatchRequest.query.filter(MatchRequest.requesting_team_id == current_user.team.id).all()
+
+        return render_template("my_requests.html",team_requests=all_team_requests)
+
+    return "You need to register a team first"
 
 with app.app_context():
     db.create_all()
