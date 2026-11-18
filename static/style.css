@@ -1,0 +1,460 @@
+*{
+    box-sizing: border-box;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+    background-color: #F7F8F7;
+}
+ul{
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+nav{
+    background-color: 	#176B3A;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+}
+.nav-brand{
+    font-size: 24px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.nav-brand i{
+    color: white;
+}
+nav a{
+    color: white;
+    text-decoration: none;
+
+}
+nav ul {
+    display: flex;
+    align-items: center;
+}
+nav ul li{
+    display: inline;
+}
+nav ul li a{
+    color: white;
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    display: block;
+}
+nav ul li a:hover{
+    background-color: #39c936;
+    border-radius: 5px;
+}
+
+/*welcome section*/
+.dashboard-container {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+}
+.profile-card {
+    background-color: #FFFFFF;
+    border: 1px solid #C5CCD6;
+    border-radius: 6px;
+    padding: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.5rem;
+}
+.card-info{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.greetings {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.25rem 0;
+}
+.team-name{
+    font-size: 0.95rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #176B3A;
+    margin: 0 0 0.75rem 0;
+}
+.team-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+.tag {
+    background-color: #F3F4F6;
+    border: 1px solid #D1D5DB;
+    color: #374151;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.25rem 0.65rem;
+    border-radius: 4px;
+}
+
+.welcome-note {
+    font-size: 0.9rem;
+    color: #4B5563;
+    margin: 0;
+}
+
+.card-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 170px;
+    flex-shrink: 0;
+}
+
+.card-actions .btn {
+    width: 100%;
+    text-align: center;
+}
+.btn {
+    display: inline-block;
+    padding: 0.6rem 1.1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    border: 1px solid transparent;
+    cursor: pointer;
+    flex-direction: column;
+}
+.btn-primary {
+    background-color: #176B3A;
+    color: #FFFFFF;
+}
+.btn-primary:hover {
+    background-color: #39c936;
+}
+
+.btn-outline {
+    background-color: #FFFFFF;
+    color: #111827;
+    border-color: #C5CCD6;
+}
+
+.btn-outline:hover {
+    border-color: #176B3A;
+    color: #176B3A;
+}
+
+/*confirmed match*/
+.confirmed-match-card {
+    background-color: #eaf7ee;
+    border: 1px solid #a7d7b8;
+    border-left: 5px solid #045f1a;
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-top: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+.match-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.4rem;
+}
+
+.match-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #045f1a;
+}
+
+.status-pill {
+    background-color: #c6ebd1;
+    color: #045f1a;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+}
+
+.confirmed-match-card h4 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 0.5rem;
+}
+
+.match-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    color: #374151;
+    margin-bottom: 0.75rem;
+}
+
+.match-meta p {
+    margin: 0;
+}
+
+.match-meta .divider {
+    color: #9ca3af;
+}
+
+.details-link {
+    display: inline-block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #045f1a;
+    text-decoration: none;
+}
+
+.details-link:hover {
+    text-decoration: underline;
+}
+
+/*quick actions*/
+.actions-section {
+    margin-top: 1.5rem;
+}
+
+.section-heading {
+    font-size: 0.85rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #374151;
+    margin-bottom: 0.65rem;
+    margin-left: 1rem;
+}
+
+/* Single unified container split into an organized 2x2 grid */
+.action-list {
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: hidden;
+}
+
+.action-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.15rem 1.35rem;
+    text-decoration: none;
+    gap: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+    transition: background-color 0.15s ease;
+}
+.card-info,
+.action-text {
+    min-width: 0;
+}
+
+/* Remove right border on the 2nd and 4th items (right column) */
+.action-row:nth-child(2n) {
+    border-right: none;
+}
+
+/* Remove bottom border on the 3rd and 4th items (bottom row) */
+.action-row:nth-child(n+3) {
+    border-bottom: none;
+}
+
+.action-row:hover {
+    background-color: #f8faf9;
+}
+
+.action-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.action-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.action-row:hover .action-title {
+    color: #045f1a;
+}
+
+.action-desc {
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.action-right {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-shrink: 0;
+}
+
+.count-tag {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #045f1a;
+    background-color: #eef6f0;
+    border: 1px solid #c6ebd1;
+    padding: 0.18rem 0.55rem;
+    border-radius: 4px;
+}
+
+.arrow {
+    font-size: 1.3rem;
+    color: #9ca3af;
+    line-height: 1;
+}
+
+.action-row:hover .arrow {
+    color: #045f1a;
+}
+
+
+
+/*footer*/
+.site-footer {
+    margin-top: 2.5rem;
+    padding: 1.25rem 1rem 2rem;
+}
+
+.footer-inner {
+    max-width: 1120px;
+    margin: 0 auto;
+    padding-top: 1.25rem;
+    border-top: 1px solid #d1d5db;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.footer-links {
+    display: flex;
+    gap: 1.25rem;
+}
+
+.footer-links a {
+    color: #4b5563;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.footer-links a:hover {
+    color: #045f1a;
+}
+
+
+
+
+
+
+
+/* Stack vertically on mobile screens */
+@media (max-width: 768px) {
+    nav {
+        padding: 12px 16px;
+    }
+
+    .nav-brand {
+        font-size: 18px;
+    }
+
+    nav ul li a {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .card-actions {
+        width: 100%;
+        min-width: 0;
+        flex-direction: row;
+        margin-top: 10px;
+    }
+
+    .card-actions .btn {
+        flex: 1;
+    }
+}
+
+/* Mobile responsiveness for Confirmed Match Card */
+@media (max-width: 768px) {
+    .confirmed-match-card {
+        padding: 1rem 1.15rem;
+    }
+
+    .confirmed-match-card h4 {
+        font-size: 1.1rem;
+        line-height: 1.3;
+    }
+
+    .match-meta {
+        font-size: 0.85rem;
+        gap: 0.4rem;
+    }
+}
+
+/* Very small phones: stack date and pitch cleanly and hide the '|' divider */
+@media (max-width: 480px) {
+    .match-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .match-meta .divider {
+        display: none;
+    }
+}
+
+/*footer*/
+@media (max-width: 768px) {
+    .footer-inner {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+}
+
+/* Mobile: cleanly collapse back into a single column */
+@media (max-width: 768px) {
+    .action-list {
+        grid-template-columns: 1fr;
+    }
+
+    .action-row {
+        padding: 1rem 1.1rem;
+        border-right: none;
+    }
+
+    /* Restore bottom border on item 3, keep none only on item 4 */
+    .action-row:nth-child(3) {
+        border-bottom: 1px solid #e5e7eb;
+    }
+}

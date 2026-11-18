@@ -5,7 +5,8 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 from werkzeug.utils import redirect
 import os
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime,date
+from sqlalchemy import or_
 
 app = Flask(__name__)
 
@@ -93,7 +94,36 @@ class MatchRequest(db.Model):
 
 @app.route("/")
 def home():
-    return "MatchDay Api is Running"
+    today = date.today()
+
+    accepted_matches = MatchRequest.query.join(AvailabilityPost).filter(
+        MatchRequest.status == "ACCEPTED",
+        or_(
+            AvailabilityPost.team_id == current_user.team.id,
+            MatchRequest.requesting_team_id == current_user.team.id
+        )
+    ).order_by(AvailabilityPost.date.asc()).all()
+
+
+    upcoming_matches = []
+
+    for match in accepted_matches:
+        match_date = match.post.date.date()
+
+        if match_date >= today:
+            upcoming_matches.append(match)
+
+    available_teams = AvailabilityPost.query.filter(
+        AvailabilityPost.status == "OPEN",
+        AvailabilityPost.team_id != current_user.team.id
+    ).count()
+
+    pending_requests = MatchRequest.query.join(AvailabilityPost).filter(
+        AvailabilityPost.team_id == current_user.team.id,
+        MatchRequest.status == "PENDING"
+    ).count()
+
+    return render_template("home.html", pending_requests=pending_requests,confirmed_match=upcoming_matches)
 
 # register route
 @app.route("/register",methods=["GET","POST"])
@@ -326,12 +356,6 @@ def accept_match(request_id):
     return redirect(url_for("inbox"))
 
 #display declined or accepted on the request sender inbox
-"""
-check that the logged-in captain has a registered team 
-retrieve all MatchRequest records where requesting_team_id matches current_user.team.id
-pass those requests to a template called my_requests.html
-"""
-
 @app.route("/my_requests")
 @login_required
 def my_requests():

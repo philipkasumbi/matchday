@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  </head>
+  <body>
+<!--  navbar-->
+<nav>
+  <div class="nav-brand">
+    <i class="fa-regular fa-futbol"></i>
+    <a href="{{ url_for('home') }}" class="brand">MATCHDAY</a>
+  </div>
+  <div>
+    <ul>
+      <li><a href="#"><i class="fa-regular fa-bell"></i></a></li>
+      <li><a href="#"><i class="fa-solid fa-user"></i></a></li>
+    </ul>
+  </div>
+
+</nav>
+
+
+<!-- Welcome section -->
+<main class="dashboard-container">
+  <div class="profile-card">
+    <div class="card-info">
+      <h3 class="greetings"><span id="greeting">Good morning</span>, {{ current_user.name }}!</h3>
+      <h5 class="team-name">{{ current_user.team.name }}</h5>
+
+      <div class="team-tags">
+        <span class="tag">{{ current_user.team.home_area }}</span>
+        <span class="tag">{{ current_user.team.format }}</span>
+      </div>
+
+      <p class="welcome-note">Welcome back to MatchDay.</p>
+    </div>
+
+    <div class="card-actions">
+      <a href="{{ url_for('search_posts') }}" class="btn btn-primary">Find Match</a>
+      <a href="{{ url_for('team_posts') }}" class="btn btn-outline">Post Match</a>
+    </div>
+
+  </div>
+</main>
+
+<!-- Confirmed matches section -->
+{% if confirmed_match %}
+  {% for match in confirmed_match %}
+    <div class="confirmed-match-card">
+      <div class="match-card-top">
+        <span class="match-label">Upcoming Match</span>
+        <span class="status-pill">Confirmed</span>
+      </div>
+
+      <h4>
+        {{ current_user.team.name }} vs
+        {% if match.requesting_team_id == current_user.team.id %}
+          {{ match.post.team.name }}
+        {% else %}
+          {{ match.requesting_team.name }}
+        {% endif %}
+      </h4>
+
+      <div class="match-meta">
+        <p>{{ match.post.date.strftime('%A, %d %B') }}</p>
+        <span class="divider">|</span>
+        <p>{{ match.post.team.name }} Grounds</p>
+      </div>
+
+      <a href="{{ url_for('inbox') }}" class="details-link">View match details &rarr;</a>
+    </div>
+  {% endfor %}
+{% endif %}
+
+<!--Quick Actions -->
+<section class="actions-section">
+  <h3 class="section-heading">Quick Actions</h3>
+
+  <div class="action-list">
+    <a href="{{ url_for('inbox') }}" class="action-row">
+      <div class="action-text">
+        <span class="action-title">Inbox</span>
+        <span class="action-desc">Incoming match challenges</span>
+      </div>
+      <div class="action-right">
+        {% if pending_requests > 0 %}
+          <span class="count-tag">{{ pending_requests }} pending</span>
+        {% endif %}
+        <span class="arrow">&rsaquo;</span>
+      </div>
+    </a>
+
+    <a href="{{ url_for('my_requests') }}" class="action-row">
+      <div class="action-text">
+        <span class="action-title">My Requests</span>
+        <span class="action-desc">Challenges sent to other teams</span>
+      </div>
+      <div class="action-right">
+        <span class="arrow">&rsaquo;</span>
+      </div>
+    </a>
+
+    <a href="{{ url_for('team_posts') }}" class="action-row">
+      <div class="action-text">
+        <span class="action-title">My Availability</span>
+        <span class="action-desc">Manage open pitch slots</span>
+      </div>
+      <div class="action-right">
+        <span class="arrow">&rsaquo;</span>
+      </div>
+    </a>
+
+    <a href="{{ url_for('home') }}" class="action-row">
+      <div class="action-text">
+        <span class="action-title">My Team</span>
+        <span class="action-desc">Squad details and home ground</span>
+      </div>
+      <div class="action-right">
+        <span class="arrow">&rsaquo;</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p>MatchDay. Play. Connect. Compete.</p>
+    <div class="footer-links">
+      <a href="{{ url_for('home') }}">Dashboard</a>
+      <a href="{{ url_for('search_posts') }}">Find Match</a>
+      <a href="{{ url_for('inbox') }}">Inbox</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+    const hour = new Date().getHours();
+    let greetingText = "Good Evening";
+
+    if (hour >= 5 && hour < 12) {
+        greetingText = "Good Morning";
+    } else if (hour >= 12 && hour < 17) {
+        greetingText = "Good Afternoon";
+    }
+
+    document.getElementById("greeting").textContent = greetingText;
+</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.9/dist/js/bootstrap.bundle.min.js" integrity="sha384-WyOxWvTyr1QaMPfiPJSv76iReVthorl5uWlFtZPyK0IEB0hGzo9y5Bp9mYanr8Bu" crossorigin="anonymous"></script>
+  </body>
+</html>
