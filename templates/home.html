@@ -23,6 +23,17 @@
 
 </nav>
 
+<div class="flash-wrapper">
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for message in messages %}
+          <div class="simple-alert">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  {% block content %}{% endblock %}
 
 <!-- Welcome section -->
 <main class="dashboard-container">
@@ -48,12 +59,19 @@
 </main>
 
 <!-- Confirmed matches section -->
+<!-- Confirmed matches section -->
 {% if confirmed_match %}
   {% for match in confirmed_match %}
     <div class="confirmed-match-card">
       <div class="match-card-top">
         <span class="match-label">Upcoming Match</span>
-        <span class="status-pill">Confirmed</span>
+        <div class="match-status-group">
+          <span class="status-pill">Confirmed</span>
+          <form action="{{ url_for('cancel_match', request_id=match.id) }}" method="POST"
+                onsubmit="return confirm('Cancel this confirmed match?');">
+            <button type="submit" class="btn-cancel-sm">Cancel</button>
+          </form>
+        </div>
       </div>
 
       <h4>

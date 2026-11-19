@@ -294,11 +294,10 @@ def request_match(post_id):
                    db.session.commit()
 
                    flash("Your match request has been sent successfully!")
-                   return redirect(url_for("search_posts"))
+                   return redirect(url_for("home"))
 
                else:
                    return "Your team has already requested this match."
-
            else:
                return "You cannot request your own team's post."
        else:
@@ -385,17 +384,44 @@ def accept_match(request_id):
     return redirect(url_for("inbox"))
 
 
-#display declined or accepted on the request sender inbox
+# display declined or accepted on the request sender inbox
 @app.route("/my_requests")
 @login_required
 def my_requests():
     if current_user.team:
-        all_team_requests = MatchRequest.query.filter(MatchRequest.requesting_team_id == current_user.team.id).all()
+        now = datetime.now()
 
-        return render_template("my_requests.html",team_requests=all_team_requests)
+        # Mark past PENDING requests as EXPIRED
+        expired_pending = (
+            MatchRequest.query
+            .join(AvailabilityPost)
+            .filter(
+                MatchRequest.requesting_team_id == current_user.team.id,
+                MatchRequest.status == "PENDING",
+                AvailabilityPost.date < now
+            )
+            .all()
+        )
+        for req in expired_pending:
+            req.status = "EXPIRED"
+        if expired_pending:
+            db.session.commit()
+
+        # Only fetch upcoming requests (match day hasn't passed yet)
+        all_team_requests = (
+            MatchRequest.query
+            .join(AvailabilityPost)
+            .filter(
+                MatchRequest.requesting_team_id == current_user.team.id,
+                AvailabilityPost.date >= now
+            )
+            .order_by(AvailabilityPost.date.asc())
+            .all()
+        )
+
+        return render_template("my_requests.html", team_requests=all_team_requests)
 
     return "You need to register a team first"
-
 
 # history page
 @app.route("/history")
@@ -449,6 +475,32 @@ def record_result(match_id):
     flash("Match result saved!")
     return redirect(url_for("history"))
 
+@app.route("/cancel_match/<int:request_id>", methods=["POST"])
+@login_required
+def cancel_match(request_id):
+    match_request = db.session.get(MatchRequest, request_id)
+    if not match_request:
+        flash("Match request not found.")
+        return redirect(url_for("home"))
+
+    post = match_request.post
+    user_team_id = current_user.team.id
+
+    if post.team_id != user_team_id and match_request.requesting_team_id != user_team_id:
+        flash("You are not authorized to cancel this match.")
+        return redirect(url_for("home"))
+
+    match_record = Match.query.filter_by(request_id=match_request.id).first()
+    if match_record and match_record.home_score is None:
+        db.session.delete(match_record)
+
+    match_request.status = "CANCELLED"
+
+    post.status = "OPEN" if post.date > datetime.now() else "CANCELLED"
+
+    db.session.commit()
+    flash("Confirmed match has been cancelled.")
+    return redirect(url_for("home"))
 
 
 
