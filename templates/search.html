@@ -1,36 +1,83 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Available Posts</title>
-</head>
-<body>
-    <h1>Find a Match</h1>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  </head>
+  <body>
+<!--  navbar-->
+<nav>
+  <div class="nav-brand">
+    <i class="fa-regular fa-futbol"></i>
+    <a href="{{ url_for('home') }}" class="brand">MATCHDAY</a>
+  </div>
+  <div>
+    <ul>
+      <li><a href="#"><i class="fa-regular fa-bell"></i></a></li>
+      <li><a href="#"><i class="fa-solid fa-user"></i></a></li>
+    </ul>
+  </div>
+</nav>
 
-    {% with messages = get_flashed_messages() %}
-        {% for message in messages %}
-            <p>{{ message }}</p>
-        {% endfor %}
-    {% endwith %}
 
-    {% if posts %}
-        {% for post in posts %}
-            <div>
-                <h3>Post #{{ post.id }}</h3>
-                <p>Location: {{ post.team.home_area }}</p>
-                <p>Date: {{ post.date }}</p>
-<!--                <p>Time: {{ post.time_window }}</p>-->
-                <p>Pitch: {{ post.pitch_status }}</p>
-                <p>Status: {{ post.status }}</p>
+<main class="requests-container">
+  <div class="requests-header">
+    <div>
+      <h2>Find a Match</h2>
+      <p>Browse open fixture dates posted by teams looking to play.</p>
+    </div>
+    <a href="{{ url_for('team_posts') }}" class="btn-inbox-accept">+ Post Availability</a>
+  </div>
 
-                <a href="{{ url_for('request_match', post_id=post.id) }}">
-                    Request Match
-                </a>
+  {% if posts %}
+    <div class="requests-panel">
+      {% for post in posts %}
+        <div class="request-item">
+          <div class="request-left">
+            <div class="request-title-row">
+              <span class="opponent-name">{{ post.team.name }}</span>
+              <span class="post-ref">Post #{{ post.id }}</span>
+              <span class="pill {% if post.pitch_status == 'HAVE PITCH' %}pill-accepted{% elif post.pitch_status == 'NEED PITCH' %}pill-pending{% else %}pill-declined{% endif %}">
+                {{ post.pitch_status }}
+              </span>
             </div>
 
-        {% endfor %}
-    {% else %}
-        <p>No open matches available.</p>
-    {% endif %}
-</body>
+            <div class="request-meta">
+              <span>{{ post.team.home_area }}</span>
+              <span class="dot">&bull;</span>
+              <span>{{ post.date.strftime('%a, %d %b %Y • %I:%M %p') }}</span>
+              <span class="dot">&bull;</span>
+              <span>{{ post.status }}</span>
+            </div>
+          </div>
+
+          <div class="request-right">
+            <a href="{{ url_for('request_match', post_id=post.id) }}" class="btn-outline-green">
+              Request Match
+            </a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="requests-empty">
+      <p>No open matches available right now.</p>
+      <a href="{{ url_for('team_posts') }}" class="btn-inbox-accept">Post Your Availability</a>
+    </div>
+  {% endif %}
+</main>
+  <footer class="site-footer">
+  <div class="footer-inner">
+    <p>MatchDay. Play. Connect. Compete.</p>
+    <div class="footer-links">
+      <a href="{{ url_for('home') }}">Dashboard</a>
+      <a href="{{ url_for('search_posts') }}">Find Match</a>
+      <a href="{{ url_for('inbox') }}">Inbox</a>
+    </div>
+  </div>
+</footer>
+  </body>
 </html>
