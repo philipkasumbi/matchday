@@ -2,23 +2,38 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MatchDay Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<h1>Login to Matchday</h1>
 
-<form action="/login" method="POST">
-    <label>Phone number:</label>
-    <input type="text" name="phone_number" required>
+  <main class="simple-auth-container">
+    <div class="simple-auth-header">
+      <div class="auth-wordmark">MatchDay</div>
+      <h2>Login to MatchDay</h2>
+      <p>Sign in with your phone number to manage fixtures.</p>
+    </div>
 
-    <br><br>
 
-    <label>Password:</label>
-    <input type="password" name="password" required>
+    <form action="{{ url_for('login') }}" method="POST" class="simple-auth-form">
+      <div class="form-group">
+        <label for="phone_number">Phone number</label>
+        <input type="text" id="phone_number" name="phone_number" required>
+      </div>
 
-    <br><br>
-    <button type="submit">Login</button>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
 
-</form>
+      <button type="submit" class="btn-simple-auth">Login</button>
+    </form>
+
+    <p class="simple-auth-switch">
+      New to MatchDay? <a href="{{ url_for('register') }}">Register</a>.
+    </p>
+  </main>
+
 </body>
 </html>

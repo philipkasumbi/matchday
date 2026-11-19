@@ -2,44 +2,58 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register Team</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Team | MatchDay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<h1>Register your Team</h1>
-{% with messages = get_flashed_messages() %}
-{% for message in messages %}
-<p>{{ message }}</p>
-{% endfor %}
-{% endwith %}
 
-<form method="POST" action="{{ url_for('register_team')}}">
-    <label>Team Name:</label><br>
-    <input name="name" type="text" required>
-    <br><br>
-    <label>Home area:</label><br>
-    <input name="home_area" type="text" required>
-    <br><br>
-    <label>Format:</label>
-    <select name="format">
-        <option>11-a-side</option>
-        <option>7-a-side</option>
-    </select>
-    <br><br>
-    <label>Level:</label>
-    <select name="level">
-        <option>Friendly</option>
-        <option>League</option>
-    </select>
-    <br><br>
-    <label>Has Home Pitch:</label>
-    <select name="has_home_pitch">
-        <option>Yes</option>
-        <option>No</option>
-    </select>
-    <br><br>
+  <main class="simple-auth-container">
+    <div class="simple-auth-header">
+      <div class="auth-wordmark">MatchDay</div>
+      <h2>Register your team</h2>
+      <p>Set up your team profile to start booking matches.</p>
+    </div>
 
-    <button type="submit">submit</button>
 
-</form>
+    <form method="POST" action="{{ url_for('register_team') }}" class="simple-auth-form">
+      <div class="form-group">
+        <label for="name">Team name</label>
+        <input type="text" id="name" name="name" required>
+      </div>
+
+      <div class="form-group">
+        <label for="home_area">Home area</label>
+        <input type="text" id="home_area" name="home_area" required>
+      </div>
+
+      <div class="form-group">
+        <label for="format">Format</label>
+        <select id="format" name="format">
+          <option value="11-a-side">11-a-side</option>
+          <option value="7-a-side">7-a-side</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="level">Level</label>
+        <select id="level" name="level">
+          <option value="Friendly">Friendly</option>
+          <option value="League">League</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="has_home_pitch">Has home pitch</label>
+        <select id="has_home_pitch" name="has_home_pitch">
+          <option value="Yes">Yes</option>
+          <option value="No">No</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn-simple-auth">Register Team</button>
+    </form>
+  </main>
+
 </body>
 </html>

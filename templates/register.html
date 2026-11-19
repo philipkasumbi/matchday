@@ -2,34 +2,43 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MatchDay Registration</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
- <h1>Join MatchDay</h1>
 
- {% with messages = get_flashed_messages() %}
-{% for message in messages %}
-<p>{{ message }}</p>
-{% endfor %}
-{% endwith %}
+  <main class="simple-auth-container">
+    <div class="simple-auth-header">
+      <div class="auth-wordmark">MatchDay</div>
+      <h2>Join MatchDay</h2>
+      <p>Register as a team captain to get started.</p>
+    </div>
 
-<form method="POST" action="/register">
-    <label>Captain name:</label>
-    <input type="text" name="captain_name" required>
 
-    <br><br>
+    <form method="POST" action="{{ url_for('register') }}" class="simple-auth-form">
+      <div class="form-group">
+        <label for="captain_name">Captain name</label>
+        <input type="text" id="captain_name" name="captain_name" required>
+      </div>
 
-    <label>Phone:</label>
-    <input type="text" name="phone" required>
+      <div class="form-group">
+        <label for="phone">Phone</label>
+        <input type="tel" id="phone" name="phone" required>
+      </div>
 
-       <br><br>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required>
+      </div>
 
-    <label>Password</label>
-    <input type="text" name="password" required>
+      <button type="submit" class="btn-simple-auth">Register</button>
+    </form>
 
-    <br><br>
+    <p class="simple-auth-switch">
+      Already have an account? <a href="{{ url_for('login') }}">Log in</a>.
+    </p>
+  </main>
 
-    <button type="submit">Register</button>
-</form>
 </body>
 </html>
