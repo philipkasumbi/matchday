@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match History | MatchDay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+<nav>
+  <div class="nav-brand">
+    <i class="fa-regular fa-futbol"></i>
+    <a href="{{ url_for('home') }}" class="brand">MATCHDAY</a>
+  </div>
+  <div>
+    <ul>
+      <li><a href="#"><i class="fa-regular fa-bell"></i></a></li>
+      <li><a href="#"><i class="fa-solid fa-user"></i></a></li>
+    </ul>
+  </div>
+
+</nav>
+
+
+
+  <main class="dashboard-container">
+    <div class="page-header">
+      <a href="{{ url_for('home') }}" class="back-link">&larr; Back to Dashboard</a>
+      <h2 class="page-title">Match History</h2>
+      <p class="page-sub">Completed fixtures played by {{ current_user.team.name }}</p>
+    </div>
+
+    {% if past_matches %}
+      <div class="history-list">
+       {% for match in past_matches %}
+  <div class="history-row">
+    <div class="history-main">
+      <h4>{{ match.home_team.name }} vs {{ match.away_team.name }}</h4>
+
+      <div class="match-meta">
+        <span>{{ match.match_date.strftime('%A, %d %B %Y') }}</span>
+        <span class="divider">|</span>
+        <span>{{ match.venue }}</span>
+      </div>
+    </div>
+
+    {% if match.home_score is not none and match.away_score is not none %}
+      <span class="played-tag">{{ match.home_score }} - {{ match.away_score }}</span>
+    {% else %}
+      <form action="{{ url_for('record_result', match_id=match.id) }}" method="POST" class="score-form">
+        <input type="number" name="home_score" min="0" placeholder="{{ match.home_team.name }}" required>
+        <span>-</span>
+        <input type="number" name="away_score" min="0" placeholder="{{ match.away_team.name }}" required>
+        <button type="submit" class="btn btn-primary">Save</button>
+      </form>
+    {% endif %}
+  </div>
+{% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <p class="empty-title">No past matches yet</p>
+        <p class="empty-sub">Confirmed fixtures automatically move here the day after matchday.</p>
+        <a href="{{ url_for('search_posts') }}" class="btn btn-primary">Find a Match</a>
+      </div>
+    {% endif %}
+  </main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p>MatchDay. Play. Connect. Compete.</p>
+    <div class="footer-links">
+      <a href="{{ url_for('home') }}">Dashboard</a>
+      <a href="{{ url_for('search_posts') }}">Find Match</a>
+      <a href="{{ url_for('inbox') }}">Inbox</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

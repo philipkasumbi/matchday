@@ -6,7 +6,7 @@ from werkzeug.utils import redirect
 import os
 from dotenv import load_dotenv
 from datetime import datetime,date
-from sqlalchemy import or_
+from sqlalchemy import or_,select
 
 app = Flask(__name__)
 
@@ -90,6 +90,25 @@ class MatchRequest(db.Model):
     # relationships
     post = db.relationship("AvailabilityPost",backref="match_requests")
     requesting_team = db.relationship("Team", foreign_keys=[requesting_team_id])
+
+
+class Match(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    request_id = db.Column(db.Integer, db.ForeignKey("match_request.id"), unique=True, nullable=False)
+
+    home_team_id = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=False)
+    away_team_id = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=False)
+    match_date = db.Column(db.DateTime, nullable=False)
+    venue = db.Column(db.String(120), nullable=False)
+
+    home_score = db.Column(db.Integer, nullable=True)
+    away_score = db.Column(db.Integer, nullable=True)
+    notes = db.Column(db.String(255), nullable=True)
+
+    # Relationships
+    request = db.relationship("MatchRequest", backref=db.backref("match", uselist=False))
+    home_team = db.relationship("Team", foreign_keys=[home_team_id])
+    away_team = db.relationship("Team", foreign_keys=[away_team_id])
 
 
 @app.route("/")
@@ -345,6 +364,16 @@ def accept_match(request_id):
 
     match_req.status = "ACCEPTED"
 
+    new_match = Match(
+        request_id=match_req.id,
+        home_team_id=match_req.post.team_id,
+        away_team_id=match_req.requesting_team_id,
+        match_date=match_req.post.date,
+        venue=f"{match_req.post.team.name} Grounds"
+    )
+    db.session.add(new_match)
+
+
     for other_request in match_req.post.match_requests:
         if other_request.id != match_req.id and other_request.status == "PENDING":
             other_request.status = "CANCELLED_AUTO"
@@ -354,6 +383,7 @@ def accept_match(request_id):
 
     flash("Match request accepted successfully!")
     return redirect(url_for("inbox"))
+
 
 #display declined or accepted on the request sender inbox
 @app.route("/my_requests")
@@ -365,6 +395,63 @@ def my_requests():
         return render_template("my_requests.html",team_requests=all_team_requests)
 
     return "You need to register a team first"
+
+
+# history page
+@app.route("/history")
+@login_required
+def history():
+    if not current_user.team:
+        return redirect(url_for("create_team"))
+
+    today = date.today()
+
+    stmt = (
+        select(Match)
+        .where(
+            Match.match_date < today,
+            or_(
+                Match.home_team_id == current_user.team.id,
+                Match.away_team_id == current_user.team.id
+            )
+        )
+        .order_by(Match.match_date.desc())
+    )
+    past_matches = db.session.execute(stmt).scalars().all()
+
+    return render_template("history.html", past_matches=past_matches)
+
+
+@app.route("/match/<int:match_id>/result", methods=["POST"])
+@login_required
+def record_result(match_id):
+    match = db.session.get(Match, match_id)
+
+    if not match:
+        flash("Match not found.")
+        return redirect(url_for("history"))
+
+    if not current_user.team or current_user.team.id not in [match.home_team_id, match.away_team_id]:
+        flash("You are not authorized to record this result.")
+        return redirect(url_for("history"))
+
+    home_score = request.form.get("home_score", type=int)
+    away_score = request.form.get("away_score", type=int)
+
+    if home_score is None or away_score is None or home_score < 0 or away_score < 0:
+        flash("Please enter valid scores (0 or higher).")
+        return redirect(url_for("history"))
+
+    match.home_score = home_score
+    match.away_score = away_score
+    db.session.commit()
+
+    flash("Match result saved!")
+    return redirect(url_for("history"))
+
+
+
+
 
 with app.app_context():
     db.create_all()

@@ -10,6 +10,25 @@ html, body {
     width: 100%;
     overflow-x: hidden;
     background-color: #F7F8F7;
+    min-height: 100vh;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+}
+
+header {
+  min-height: 50px;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
 }
 ul{
     list-style-type: none;
@@ -57,6 +76,7 @@ nav ul li a:hover{
 
 /*welcome section*/
 .dashboard-container {
+    width: 100%;
     max-width: 1120px;
     margin: 0 auto;
     padding: 1.5rem 1rem;
@@ -327,11 +347,9 @@ nav ul li a:hover{
     color: #045f1a;
 }
 
-
-
 /*footer*/
 .site-footer {
-    margin-top: 2.5rem;
+    margin-top: 4.5rem;
     padding: 1.25rem 1rem 2rem;
 }
 
@@ -361,6 +379,127 @@ nav ul li a:hover{
 
 .footer-links a:hover {
     color: #045f1a;
+}
+
+/* History Page */
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+.back-link {
+    display: inline-block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #176B3A;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.page-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 0.25rem;
+}
+
+.page-sub {
+    font-size: 0.9rem;
+    color: #4B5563;
+}
+
+.history-list {
+    background-color: #FFFFFF;
+    border: 1px solid #D1D5DB;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.history-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.15rem 1.35rem;
+    border-bottom: 1px solid #E5E7EB;
+    gap: 1rem;
+}
+
+.history-row:last-child {
+    border-bottom: none;
+}
+
+.history-main {
+    min-width: 0;
+}
+
+.history-main h4 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.35rem;
+}
+
+.history-main .match-meta {
+    margin-bottom: 0;
+}
+
+.played-tag {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #374151;
+    background-color: #F3F4F6;
+    border: 1px solid #D1D5DB;
+    padding: 0.22rem 0.65rem;
+    border-radius: 999px;
+    flex-shrink: 0;
+}
+
+.empty-state {
+    background-color: #FFFFFF;
+    border: 1px solid #D1D5DB;
+    border-radius: 10px;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+}
+
+.empty-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 0.35rem;
+}
+
+.empty-sub {
+    font-size: 0.9rem;
+    color: #6B7280;
+    margin-bottom: 1.25rem;
+}
+.score-form {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.score-form input[type="number"] {
+    width: 64px;
+    padding: 0.4rem 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.score-form input[type="number"]:focus {
+    outline: none;
+    border-color: #045f1a;
+}
+
+.score-form button {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.85rem;
 }
 
 
@@ -456,5 +595,13 @@ nav ul li a:hover{
     /* Restore bottom border on item 3, keep none only on item 4 */
     .action-row:nth-child(3) {
         border-bottom: 1px solid #e5e7eb;
+    }
+}
+
+/*history page*/
+@media (max-width: 768px) {
+    .history-row {
+        padding: 1rem 1.1rem;
+        align-items: flex-start;
     }
 }
