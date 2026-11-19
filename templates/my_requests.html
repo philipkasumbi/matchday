@@ -1,21 +1,90 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>My Requests</title>
-</head>
-<body>
-<h1>My Requests</h1>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  </head>
+  <body>
 
-{% for request in team_requests %}
-<div>
-    <p>Receiving team:{{ request.post.team.name }}</p>
-     <p>Post ID:{{ request.post_id }}</p>
-    <p>Message:{{ request.message }}</p>
-    <p>status:{{ request.status }}</p>
-</div>
-{% else %}
-<p>No Requests Send</p>
-{% endfor %}
-</body>
+<nav>
+  <div class="nav-brand">
+    <i class="fa-regular fa-futbol"></i>
+    <a href="{{ url_for('home') }}" class="brand">MATCHDAY</a>
+  </div>
+  <div>
+    <ul>
+      <li><a href="#"><i class="fa-regular fa-bell"></i></a></li>
+      <li><a href="#"><i class="fa-solid fa-user"></i></a></li>
+    </ul>
+  </div>
+
+</nav>
+<main class="requests-container">
+  <div class="requests-header">
+    <div>
+      <h2>My Requests</h2>
+      <p>Track outgoing fixture requests sent by your team.</p>
+    </div>
+    <a href="{{ url_for('search_posts') }}" class="btn-outline-green">Find Matches</a>
+  </div>
+
+  {% if team_requests %}
+    <div class="requests-panel">
+      {% for request in team_requests %}
+        <div class="request-item">
+          <div class="request-left">
+            <div class="request-title-row">
+              <span class="opponent-name">{{ request.post.team.name }}</span>
+              <span class="post-ref">Post #{{ request.post_id }}</span>
+            </div>
+
+            <div class="request-meta">
+              {% if request.post.date %}
+                <span>{{ request.post.date.strftime('%a, %d %b %Y') }}</span>
+                <span class="dot">&bull;</span>
+              {% endif %}
+              <span>{{ request.post.team.home_area }}</span>
+            </div>
+
+            {% if request.message %}
+              <p class="request-note">"{{ request.message }}"</p>
+            {% endif %}
+          </div>
+
+          <div class="request-right">
+            {% if request.status == 'ACCEPTED' %}
+              <span class="pill pill-accepted">Accepted</span>
+            {% elif request.status == 'PENDING' %}
+              <span class="pill pill-pending">Pending</span>
+            {% else %}
+              <span class="pill pill-declined">{{ request.status | replace('_', ' ') | title }}</span>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="requests-empty">
+      <p>You haven't sent any match requests yet.</p>
+      <a href="{{ url_for('search_posts') }}" class="btn-inbox-accept">Browse Open Fixtures</a>
+    </div>
+  {% endif %}
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p>MatchDay. Play. Connect. Compete.</p>
+    <div class="footer-links">
+      <a href="{{ url_for('home') }}">Dashboard</a>
+      <a href="{{ url_for('search_posts') }}">Find Match</a>
+      <a href="{{ url_for('inbox') }}">Inbox</a>
+    </div>
+  </div>
+</footer>
+
+ </body>
 </html>
+
