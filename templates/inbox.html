@@ -1,45 +1,139 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Inbox</title>
-</head>
-<body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  </head>
+  <body>
 
-<h1>Pending Requests</h1>
-{% for request in pending_requests %}
-<div>
-    <p>Request ID: {{ request.match_request_id }}</p>
-    <p>Team: {{ request.requesting_team }}</p>
-    <p>Status: {{ request.status }}</p>
-    <p>Message: {{ request.message }}</p>
-    <form action="{{ url_for('accept_match', request_id=request.match_request_id) }}" method="POST">
-    <button type="submit">Accept</button>
-    </form>
-      <br>  <br>
-</div>
-{% endfor %}
+<nav>
+  <div class="nav-brand">
+    <i class="fa-regular fa-futbol"></i>
+    <a href="{{ url_for('home') }}" class="brand">MATCHDAY</a>
+  </div>
+  <div>
+    <ul>
+      <li><a href="#"><i class="fa-regular fa-bell"></i></a></li>
+      <li><a href="#"><i class="fa-solid fa-user"></i></a></li>
+    </ul>
+  </div>
 
-<h1>Accepted Requests</h1>
-{% for request in accepted_requests %}
-<div>
-    <p>Request ID: {{ request.match_request_id }}</p>
-    <p>Team: {{ request.requesting_team }}</p>
-    <p>Status: {{ request.status }}</p>
-    <p>Message: {{ request.message }}</p>
+</nav>
 
-</div>
-{% endfor %}
 
-<h1>Declined Requests</h1>
-{% for request in declined_requests %}
-<div>
-    <p>Request ID: {{ request.match_request_id }}</p>
-    <p>Team: {{ request.requesting_team }}</p>
-    <p>Status: {{ request.status }}</p>
-    <p>Message: {{ request.message }}</p>
-</div>
-{% endfor %}
+<main class="inbox-board-wrapper">
+  <div class="inbox-header">
+    <h2>Match Inbox</h2>
+    <p>Manage incoming fixture requests across all statuses.</p>
+  </div>
 
-</body>
+  <div class="inbox-board">
+    <!-- Column 1: Pending -->
+    <section class="inbox-col">
+      <div class="inbox-col-head">
+        <h3>Pending</h3>
+        <span class="col-count">{{ pending_requests|length }}</span>
+      </div>
+
+      {% if pending_requests %}
+        {% for request in pending_requests %}
+          <div class="inbox-item">
+            <div class="inbox-item-top">
+              <strong>{{ request.requesting_team }}</strong>
+              <span class="inbox-id">#{{ request.match_request_id }}</span>
+            </div>
+
+            {% if request.message %}
+              <p class="inbox-msg">{{ request.message }}</p>
+            {% endif %}
+
+            <div class="inbox-item-foot">
+              <span class="status-tag">{{ request.status }}</span>
+              <form action="{{ url_for('accept_match', request_id=request.match_request_id) }}" method="POST">
+                <button type="submit" class="btn-inbox-accept">Accept</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty-note">No pending requests.</p>
+      {% endif %}
+    </section>
+
+    <!-- Column 2: Accepted -->
+    <!-- Column 2: Accepted -->
+    <section class="inbox-col">
+      <div class="inbox-col-head">
+        <h3>Accepted</h3>
+        <span class="col-count">{{ accepted_requests|length }}</span>
+      </div>
+
+      {% if accepted_requests %}
+        {% for request in accepted_requests %}
+          <div class="inbox-item">
+            <div class="inbox-item-top">
+              <strong>{{ request.requesting_team }}</strong>
+              <span class="inbox-id">#{{ request.match_request_id }}</span>
+            </div>
+
+            {% if request.message %}
+              <p class="inbox-msg">{{ request.message }}</p>
+            {% endif %}
+
+            <div class="inbox-item-foot">
+              <span class="status-tag status-accepted">{{ request.status }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty-note">No accepted requests.</p>
+      {% endif %}
+    </section>
+
+    <!-- Column 3: Declined -->
+    <section class="inbox-col">
+      <div class="inbox-col-head">
+        <h3>Declined</h3>
+        <span class="col-count">{{ declined_requests|length }}</span>
+      </div>
+
+      {% if declined_requests %}
+        {% for request in declined_requests %}
+          <div class="inbox-item">
+            <div class="inbox-item-top">
+              <strong>{{ request.requesting_team }}</strong>
+              <span class="inbox-id">#{{ request.match_request_id }}</span>
+            </div>
+
+            {% if request.message %}
+              <p class="inbox-msg">{{ request.message }}</p>
+            {% endif %}
+
+            <div class="inbox-item-foot">
+              <span class="status-tag">{{ request.status }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="empty-note">No declined requests.</p>
+      {% endif %}
+    </section>
+  </div>
+
+</main>
+
+  <footer class="site-footer">
+  <div class="footer-inner">
+    <p>MatchDay. Play. Connect. Compete.</p>
+    <div class="footer-links">
+      <a href="{{ url_for('home') }}">Dashboard</a>
+      <a href="{{ url_for('search_posts') }}">Find Match</a>
+      <a href="{{ url_for('inbox') }}">Inbox</a>
+    </div>
+  </div>
+</footer>
+  </body>
 </html>
