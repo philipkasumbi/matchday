@@ -2,32 +2,65 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Team Posts</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a Post | MatchDay</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
-<h1>Create a Post</h1>
+<nav>
+  <div class="nav-brand">
+    <i class="fa-regular fa-futbol"></i>
+    <a href="{{ url_for('home') }}" class="brand">MATCHDAY</a>
+  </div>
+  <div>
+    <ul>
+      <li><a href="#"><i class="fa-regular fa-bell"></i></a></li>
+      <li><a href="#"><i class="fa-solid fa-user"></i></a></li>
+    </ul>
+  </div>
 
-{% with messages = get_flashed_messages() %}
-{% for message in messages %}
-<p>{{ message }}</p>
-{% endfor %}
-{% endwith %}
+</nav>
+
+  <main class="simple-auth-container">
+    <div class="simple-auth-header">
+      <div class="auth-wordmark">MatchDay</div>
+      <h2>Create a post</h2>
+      <p>Share when your team is available for a match.</p>
+    </div>
 
 
-<form action="{{ url_for('team_posts') }}" method="POST">
-  <label>Date:</label>
-  <input type="datetime-local" name="date" required>
-  <br><br>
-  <label>Pitch Status:</label>
-  <select name="pitch_status" required>
-    <option>HAVE PITCH</option>
-    <option>NEED PITCH</option>
-    <option>NEUTRAL</option>
-  </select>
-  <br><br>
+    <form action="{{ url_for('team_posts') }}" method="POST" class="simple-auth-form">
+      <div class="form-group">
+        <label for="date">Date</label>
+        <input type="datetime-local" id="date" name="date" required>
+      </div>
 
-  <button type="submit">Submit</button>
+      <div class="form-group">
+        <label for="pitch_status">Pitch status</label>
+        <select id="pitch_status" name="pitch_status" required>
+          <option value="HAVE PITCH">HAVE PITCH</option>
+          <option value="NEED PITCH">NEED PITCH</option>
+          <option value="NEUTRAL">NEUTRAL</option>
+        </select>
+      </div>
 
-</form>
+      <button type="submit" class="btn-simple-auth">Publish Post</button>
+    </form>
+
+    <p class="simple-auth-switch">
+      <a href="{{ url_for('home') }}">&larr; Back to home</a>
+    </p>
+  </main>
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p>MatchDay. Play. Connect. Compete.</p>
+    <div class="footer-links">
+      <a href="{{ url_for('home') }}">Dashboard</a>
+      <a href="{{ url_for('search_posts') }}">Find Match</a>
+      <a href="{{ url_for('inbox') }}">Inbox</a>
+    </div>
+  </div>
+</footer>
 </body>
 </html>
