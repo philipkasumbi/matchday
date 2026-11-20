@@ -490,7 +490,7 @@ nav ul li a:hover{
 
 /*quick actions*/
 .actions-section {
-    margin-top: 1.5rem;
+    margin-top: 1.6rem;
 }
 
 .section-heading {
@@ -500,7 +500,7 @@ nav ul li a:hover{
     letter-spacing: 0.8px;
     color: #374151;
     margin-bottom: 0.65rem;
-    margin-left: 1rem;
+    margin-left: 1.5rem;
 }
 
 /* Single unified container split into an organized 2x2 grid */
@@ -592,7 +592,6 @@ nav ul li a:hover{
 }
 
 /*inbox section*/
-/* Horizontal 3-Column Inbox */
 .inbox-board-wrapper {
     max-width: 1120px;
     margin: 2.5rem auto;
@@ -1045,7 +1044,44 @@ nav ul li a:hover{
     font-size: 0.85rem;
 }
 
+/*profile*/
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
 
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.form-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group input,
+.form-group select {
+    padding: 0.6rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background-color: #ffffff;
+    color: #111827;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #045f1a;
+}
+
+.danger-zone {
+    border-color: #fecaca;
+}
 
 
 
