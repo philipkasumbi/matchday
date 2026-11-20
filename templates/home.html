@@ -16,7 +16,12 @@
   </div>
   <div>
     <ul>
-      <li><a href="#"><i class="fa-regular fa-bell"></i></a></li>
+       <a href="{{ url_for('inbox') }}" class="nav-notif-link" aria-label="Match Inbox">
+      <span class="notif-icon">&#128276;</span>
+      {% if pending_count > 0 %}
+      <sup class="notif-badge">{{ pending_count }}</sup>
+      {% endif %}
+      </a>
       <li><a href="#"><i class="fa-solid fa-user"></i></a></li>
     </ul>
   </div>

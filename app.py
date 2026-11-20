@@ -502,7 +502,21 @@ def cancel_match(request_id):
     flash("Confirmed match has been cancelled.")
     return redirect(url_for("home"))
 
-
+@app.context_processor
+def inject_pending_count():
+    if current_user.is_authenticated and current_user.team:
+        count = (
+            MatchRequest.query
+            .join(AvailabilityPost)
+            .filter(
+                AvailabilityPost.team_id == current_user.team.id,
+                MatchRequest.status == "PENDING",
+                AvailabilityPost.date >= datetime.now()
+            )
+            .count()
+        )
+        return dict(pending_count=count)
+    return dict(pending_count=0)
 
 
 with app.app_context():
