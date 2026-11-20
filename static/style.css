@@ -742,6 +742,29 @@ nav ul li a:hover{
     color: #6b7280;
 }
 
+.inbox-archive-note {
+    margin-top: 2rem;
+    padding: 0.85rem 1.25rem;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #4b5563;
+}
+
+.inbox-archive-note a {
+    color: #045f1a;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.inbox-archive-note a:hover {
+    text-decoration: underline;
+}
+
 @media (max-width: 900px) {
     .inbox-board {
         grid-template-columns: 1fr;

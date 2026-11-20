@@ -6,7 +6,7 @@ from werkzeug.utils import redirect
 import os
 from dotenv import load_dotenv
 from datetime import datetime,date
-from sqlalchemy import or_,select
+from sqlalchemy import or_,select,func
 
 app = Flask(__name__)
 
@@ -110,6 +110,28 @@ class Match(db.Model):
     home_team = db.relationship("Team", foreign_keys=[home_team_id])
     away_team = db.relationship("Team", foreign_keys=[away_team_id])
 
+
+def has_match_on_date(team_id, target_dt):
+    target_day = target_dt.date() if isinstance(target_dt, datetime) else target_dt
+
+    accepted_requests = (
+        MatchRequest.query
+        .join(AvailabilityPost)
+        .filter(
+            MatchRequest.status == "ACCEPTED",
+            or_(
+                AvailabilityPost.team_id == team_id,
+                MatchRequest.requesting_team_id == team_id
+            )
+        )
+        .all()
+    )
+
+    for req in accepted_requests:
+        if req.post.date.date() == target_day:
+            return True
+
+    return False
 
 @app.route("/")
 def home():
@@ -255,28 +277,32 @@ def register_team():
     return render_template("register_team.html")
 
 # create an availability post
-@app.route("/posts",methods=["POST","GET"])
+@app.route("/posts", methods=["POST", "GET"])
 @login_required
 def team_posts():
     if request.method == "POST":
+        if not current_user.team:
+            flash("Register a Team First", "error")
+            return redirect(url_for("register_team"))
+
         date_input = request.form.get("date")
-        date = datetime.fromisoformat(date_input)
+        post_date = datetime.fromisoformat(date_input)
         pitch_status = request.form.get("pitch_status")
 
-        if current_user.team:
-            post = AvailabilityPost(
-                date = date,
-                pitch_status = pitch_status,
-                team_id = current_user.team.id
-            )
-
-            db.session.add(post)
-            db.session.commit()
-
-            flash("Post Created successfully","success")
+        if has_match_on_date(current_user.team.id, post_date):
+            flash("Your team already has a confirmed match on that date.", "error")
             return redirect(url_for("team_posts"))
-        flash("Register a Team First","error")
-        return redirect(url_for("register_team"))
+
+        post = AvailabilityPost(
+            date=post_date,
+            pitch_status=pitch_status,
+            team_id=current_user.team.id
+        )
+        db.session.add(post)
+        db.session.commit()
+
+        flash("Post Created successfully", "success")
+        return redirect(url_for("team_posts"))
 
     return render_template("posts.html")
 
@@ -284,96 +310,135 @@ def team_posts():
 @app.route("/request-match/<int:post_id>")
 @login_required
 def request_match(post_id):
-   post = db.session.get(AvailabilityPost, post_id)
-   if post and post.status=="OPEN":
-       if current_user.team:
-           if post.team != current_user.team:
-               existing_request = MatchRequest.query.filter(
-                   MatchRequest.post_id == post_id,
-                   MatchRequest.requesting_team_id == current_user.team.id
-               ).first()
-               if not existing_request:
-                   request = MatchRequest(
-                       message = "Hey we are available!",
-                       post_id= post.id,
-                       requesting_team_id=current_user.team.id
-                   )
-                   db.session.add(request)
-                   db.session.commit()
+    post = db.session.get(AvailabilityPost, post_id)
 
-                   flash("Your match request has been sent successfully!","success")
-                   return redirect(url_for("search_posts"))
+    if not post or post.status != "OPEN":
+        flash("Oops, the post is not open for requesting.", "error")
+        return redirect(url_for("search_posts"))
 
-               else:
-                   flash("Your team has already requested this match.","error")
-                   return redirect(url_for('search_posts'))
-           else:
-               flash("You cannot request your own team's post.","error")
-               return redirect(url_for('search_posts'))
-       else:
-           flash("You need to register a team before requesting a match.","error")
-           return redirect(url_for('search_posts'))
-   else:
-       flash("Ooops the post is not open for requesting","error")
-       return redirect(url_for('search_posts'))
+    if not current_user.team:
+        flash("You need to register a team before requesting a match.", "error")
+        return redirect(url_for("search_posts"))
+
+    if post.team == current_user.team:
+        flash("You cannot request your own team's post.", "error")
+        return redirect(url_for("search_posts"))
+
+    if has_match_on_date(current_user.team.id, post.date):
+        flash("You already have a confirmed match on this date.", "error")
+        return redirect(url_for("search_posts"))
+
+    existing_request = MatchRequest.query.filter(
+        MatchRequest.post_id == post_id,
+        MatchRequest.requesting_team_id == current_user.team.id
+    ).first()
+
+    if existing_request:
+        flash("Your team has already requested this match.", "error")
+        return redirect(url_for("search_posts"))
+
+    new_request = MatchRequest(
+        message="Hey we are available!",
+        post_id=post.id,
+        requesting_team_id=current_user.team.id
+    )
+    db.session.add(new_request)
+    db.session.commit()
+
+    flash("Your match request has been sent successfully!", "success")
+    return redirect(url_for("search_posts"))
 
 # accept match requests
 @app.route("/inbox")
 @login_required
 def inbox():
-    if current_user.team:
-        captains_posts = current_user.team.posts
-        incoming_requests = []
-        for post in captains_posts:
-            match_requests = post.match_requests
-            for match_request in match_requests:
-                match_request_id = match_request.id
-                requesting_team = match_request.requesting_team.name
-                status = match_request.status
-                message = match_request.message
-                incoming_requests.append({
-                    "match_request_id":match_request_id,
-                    "requesting_team":requesting_team,
-                    "status":status,
-                    "message":message
-                })
+    if not current_user.team:
+        flash("You don't have a registered team", "error")
+        return redirect(url_for("register_team"))
 
-        pending_requests = []
-        for request in incoming_requests:
-            if request["status"] == "PENDING":
-                pending_requests.append(request)
+    now = datetime.now()
 
-        accepted_requests = []
-        for request in incoming_requests:
-            if request["status"] == "ACCEPTED":
-                accepted_requests.append(request)
+    # Auto-expire old PENDING requests whose match date has passed
+    expired_incoming = (
+        MatchRequest.query
+        .join(AvailabilityPost)
+        .filter(
+            AvailabilityPost.team_id == current_user.team.id,
+            MatchRequest.status == "PENDING",
+            AvailabilityPost.date < now
+        )
+        .all()
+    )
+    for req in expired_incoming:
+        req.status = "EXPIRED"
+    if expired_incoming:
+        db.session.commit()
 
-        declined_requests = []
-        for request in incoming_requests:
-            if request["status"] == "DECLINED":
-                declined_requests.append(request)
+    # Only fetch requests for upcoming posts
+    upcoming_requests = (
+        MatchRequest.query
+        .join(AvailabilityPost)
+        .filter(
+            AvailabilityPost.team_id == current_user.team.id,
+            AvailabilityPost.date >= now
+        )
+        .order_by(AvailabilityPost.date.asc())
+        .all()
+    )
 
-        return render_template("inbox.html",pending_requests=pending_requests,accepted_requests=accepted_requests,declined_requests=declined_requests)
-    flash("You don't have a registered team","error")
-    return redirect(url_for("register_team"))
+    pending_requests = []
+    accepted_requests = []
+    declined_requests = []
 
+    for match_request in upcoming_requests:
+        item = {
+            "match_request_id": match_request.id,
+            "requesting_team": match_request.requesting_team.name,
+            "status": match_request.status,
+            "message": match_request.message,
+            "match_date": match_request.post.date
+        }
+        if match_request.status == "PENDING":
+            pending_requests.append(item)
+        elif match_request.status == "ACCEPTED":
+            accepted_requests.append(item)
+        elif match_request.status == "DECLINED":
+            declined_requests.append(item)
+
+    return render_template(
+        "inbox.html",
+        pending_requests=pending_requests,
+        accepted_requests=accepted_requests,
+        declined_requests=declined_requests
+    )
 
 # accept Match
-@app.route('/accept/<int:request_id>',methods=["POST"])
+@app.route('/accept/<int:request_id>', methods=["POST"])
 @login_required
 def accept_match(request_id):
     match_req = db.session.get(MatchRequest, request_id)
 
     if not match_req:
-       flash("Match request not found")
-       return redirect(url_for("inbox"))
+        flash("Match request not found", "error")
+        return redirect(url_for("inbox"))
 
     if not current_user.team or match_req.post.team != current_user.team:
-        flash("You are not authorized to accept this request")
+        flash("You are not authorized to accept this request", "error")
         return redirect(url_for("inbox"))
 
     if match_req.status != "PENDING" or match_req.post.status != "OPEN":
-        flash("This request is no longer available")
+        flash("This request is no longer available", "error")
+        return redirect(url_for("inbox"))
+
+    match_day = match_req.post.date.date()
+
+    # Prevent same-day double booking for either team
+    if has_match_on_date(current_user.team.id, match_day):
+        flash("You already have a confirmed match on this date.", "error")
+        return redirect(url_for("inbox"))
+
+    if has_match_on_date(match_req.requesting_team_id, match_day):
+        flash("The requesting team already booked another match for this date.", "error")
         return redirect(url_for("inbox"))
 
     match_req.status = "ACCEPTED"
@@ -387,17 +452,40 @@ def accept_match(request_id):
     )
     db.session.add(new_match)
 
-
     for other_request in match_req.post.match_requests:
         if other_request.id != match_req.id and other_request.status == "PENDING":
             other_request.status = "CANCELLED_AUTO"
 
     match_req.post.status = "CLOSED"
+
+    # Close any other OPEN posts and PENDING requests for either team on that same day
+    both_team_ids = [match_req.post.team_id, match_req.requesting_team_id]
+
+    other_same_day_posts = AvailabilityPost.query.filter(
+        AvailabilityPost.id != match_req.post.id,
+        AvailabilityPost.team_id.in_(both_team_ids),
+        AvailabilityPost.status == "OPEN",
+        func.date(AvailabilityPost.date) == match_day
+    ).all()
+    for post in other_same_day_posts:
+        post.status = "CLOSED"
+
+    other_same_day_requests = MatchRequest.query.join(AvailabilityPost).filter(
+        MatchRequest.id != match_req.id,
+        MatchRequest.status == "PENDING",
+        func.date(AvailabilityPost.date) == match_day,
+        or_(
+            MatchRequest.requesting_team_id.in_(both_team_ids),
+            AvailabilityPost.team_id.in_(both_team_ids)
+        )
+    ).all()
+    for req in other_same_day_requests:
+        req.status = "CANCELLED_AUTO"
+
     db.session.commit()
 
-    flash("Match request accepted successfully!","success")
+    flash("Match request accepted successfully!", "success")
     return redirect(url_for("inbox"))
-
 
 # display declined or accepted on the request sender inbox
 @app.route("/my_requests")
