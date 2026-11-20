@@ -133,6 +133,21 @@ def has_match_on_date(team_id, target_dt):
 
     return False
 
+
+def has_open_post_on_date(team_id, target_dt):
+    target_day = target_dt.date() if isinstance(target_dt, datetime) else target_dt
+
+    open_posts = AvailabilityPost.query.filter(
+        AvailabilityPost.team_id == team_id,
+        AvailabilityPost.status == "OPEN"
+    ).all()
+
+    for post in open_posts:
+        if post.date.date() == target_day:
+            return True
+
+    return False
+
 @app.route("/")
 def home():
     today = date.today()
@@ -164,7 +179,15 @@ def home():
 
     pending_requests = MatchRequest.query.join(AvailabilityPost).filter(
         AvailabilityPost.team_id == current_user.team.id,
-        MatchRequest.status == "PENDING"
+        MatchRequest.status == "PENDING",
+        AvailabilityPost.date >= datetime.now()
+    ).count()
+
+    start_of_today = datetime.combine(date.today(), datetime.min.time())
+    pending_requests = MatchRequest.query.join(AvailabilityPost).filter(
+        AvailabilityPost.team_id == current_user.team.id,
+        MatchRequest.status == "PENDING",
+        AvailabilityPost.date >= start_of_today
     ).count()
 
     return render_template("home.html", pending_requests=pending_requests,confirmed_match=upcoming_matches)
@@ -293,6 +316,10 @@ def team_posts():
             flash("Your team already has a confirmed match on that date.", "error")
             return redirect(url_for("team_posts"))
 
+        if has_open_post_on_date(current_user.team.id, post_date):
+            flash("You already have an open availability post for this date.", "error")
+            return redirect(url_for("team_posts"))
+
         post = AvailabilityPost(
             date=post_date,
             pitch_status=pitch_status,
@@ -356,16 +383,16 @@ def inbox():
         flash("You don't have a registered team", "error")
         return redirect(url_for("register_team"))
 
-    now = datetime.now()
+    start_of_today = datetime.combine(date.today(), datetime.min.time())
 
-    # Auto-expire old PENDING requests whose match date has passed
+    # Only expire PENDING requests from yesterday or earlier
     expired_incoming = (
         MatchRequest.query
         .join(AvailabilityPost)
         .filter(
             AvailabilityPost.team_id == current_user.team.id,
             MatchRequest.status == "PENDING",
-            AvailabilityPost.date < now
+            AvailabilityPost.date < start_of_today
         )
         .all()
     )
@@ -374,13 +401,13 @@ def inbox():
     if expired_incoming:
         db.session.commit()
 
-    # Only fetch requests for upcoming posts
+    # Fetch requests for today and future dates
     upcoming_requests = (
         MatchRequest.query
         .join(AvailabilityPost)
         .filter(
             AvailabilityPost.team_id == current_user.team.id,
-            AvailabilityPost.date >= now
+            AvailabilityPost.date >= start_of_today
         )
         .order_by(AvailabilityPost.date.asc())
         .all()
@@ -610,13 +637,14 @@ def cancel_match(request_id):
 @app.context_processor
 def inject_pending_count():
     if current_user.is_authenticated and current_user.team:
+        start_of_today = datetime.combine(date.today(), datetime.min.time())
         count = (
             MatchRequest.query
             .join(AvailabilityPost)
             .filter(
                 AvailabilityPost.team_id == current_user.team.id,
                 MatchRequest.status == "PENDING",
-                AvailabilityPost.date >= datetime.now()
+                AvailabilityPost.date >= start_of_today
             )
             .count()
         )
@@ -720,6 +748,79 @@ def delete_account():
     flash("Your account and team data have been permanently deleted.","success")
     return redirect(url_for("register"))
 
+# 1. Team Directory & Search Page (/teams)
+@app.route("/teams")
+@login_required
+def search_teams():
+    query = request.args.get("q", "").strip()
+    teams_query = Team.query
+
+    if query:
+        teams_query = teams_query.filter(
+            or_(
+                Team.name.ilike(f"%{query}%"),
+                Team.home_area.ilike(f"%{query}%")
+            )
+        )
+
+    teams = teams_query.order_by(Team.name.asc()).all()
+    return render_template("teams.html", teams=teams, query=query)
+
+
+# 2. Individual Team Profile & Match Record (/team/<id>)
+@app.route("/team/<int:team_id>")
+@login_required
+def team_profile(team_id):
+    team = db.session.get(Team, team_id)
+    if not team:
+        flash("Team not found.", "error")
+        return redirect(url_for("search_teams"))
+
+    now = datetime.now()
+
+    open_posts = (
+        AvailabilityPost.query
+        .filter(
+            AvailabilityPost.team_id == team.id,
+            AvailabilityPost.status == "OPEN",
+            AvailabilityPost.date >= now
+        )
+        .order_by(AvailabilityPost.date.asc())
+        .all()
+    )
+
+    all_matches = (
+        Match.query
+        .filter(or_(Match.home_team_id == team.id, Match.away_team_id == team.id))
+        .order_by(Match.match_date.desc())
+        .all()
+    )
+
+    upcoming_matches = [m for m in all_matches if m.match_date >= now]
+    past_matches = [m for m in all_matches if m.match_date < now]
+
+    wins = draws = losses = 0
+    for m in past_matches:
+        if m.home_score is not None and m.away_score is not None:
+            is_home = (m.home_team_id == team.id)
+            team_goals = m.home_score if is_home else m.away_score
+            opp_goals = m.away_score if is_home else m.home_score
+
+            if team_goals > opp_goals:
+                wins += 1
+            elif team_goals == opp_goals:
+                draws += 1
+            else:
+                losses += 1
+
+    return render_template(
+        "team_profile.html",
+        team=team,
+        open_posts=open_posts,
+        upcoming_matches=upcoming_matches,
+        past_matches=past_matches,
+        record={"wins": wins, "draws": draws, "losses": losses}
+    )
 
 # logout
 @app.route("/logout")

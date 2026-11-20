@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teams - MatchDay</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=5) }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+<nav>
+  <div class="nav-brand">
+    <i class="fa-regular fa-futbol"></i>
+    <a href="{{ url_for('home') }}" class="brand">MATCHDAY</a>
+  </div>
+  <div>
+    <ul>
+      <li>
+       <a href="{{ url_for('inbox') }}" class="nav-notif-link" aria-label="Match Inbox">
+      <span class="notif-icon">&#128276;</span>
+      {% if pending_count > 0 %}
+      <sup class="notif-badge">{{ pending_count }}</sup>
+      {% endif %}
+      </a>
+      </li>
+       <li>
+  <a href="{{ url_for('profile') }}" aria-label="Account Profile">
+    <i class="fa-solid fa-user"></i>
+  </a>
+</li>
+      <li><a href="{{ url_for('search_teams') }}">Teams</a></li>
+    </ul>
+  </div>
+</nav>
+
+{% include "alerts.html" %}
+
+ <main class="container">
+  <a href="{{ url_for('search_teams') }}" class="back-link">&larr; Back to Teams</a>
+
+  <section class="profile-hero">
+    <div class="profile-hero-info">
+      <div class="profile-title-row">
+        <h2>{{ team.name }}</h2>
+        <span class="level-badge">{{ team.level }}</span>
+      </div>
+      <p class="profile-sub">
+        {{ team.home_area }} &bull; {{ team.format }} &bull;
+        {{ 'Has Home Pitch' if team.has_home_pitch else 'No Home Pitch' }}
+      </p>
+    </div>
+
+    <div class="record-pills">
+      <div class="stat-pill stat-win">
+        <span class="stat-num">{{ record.wins }}</span>
+        <span class="stat-label">Wins</span>
+      </div>
+      <div class="stat-pill stat-draw">
+        <span class="stat-num">{{ record.draws }}</span>
+        <span class="stat-label">Draws</span>
+      </div>
+      <div class="stat-pill stat-loss">
+        <span class="stat-num">{{ record.losses }}</span>
+        <span class="stat-label">Losses</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="profile-section">
+    <h3>Open Availability</h3>
+    {% for post in open_posts %}
+      <div class="fixture-card">
+        <div class="fixture-main">
+          <strong>{{ post.date.strftime('%a, %d %b %Y') }}</strong>
+          <span class="fixture-time">{{ post.date.strftime('%I:%M %p') }} &bull; {{ post.pitch_status.replace('_', ' ') }}</span>
+        </div>
+        {% if current_user.team and current_user.team.id != team.id %}
+          <a href="{{ url_for('request_match', post_id=post.id) }}" class="btn-primary fixture-cta">Request Match</a>
+        {% endif %}
+      </div>
+    {% else %}
+      <p class="muted-empty">No open slots posted right now.</p>
+    {% endfor %}
+  </section>
+
+  <section class="profile-section">
+    <h3>Upcoming Fixtures</h3>
+    {% for match in upcoming_matches %}
+      <div class="fixture-card">
+        <div class="scoreboard-row">
+          <span class="club-name">{{ match.home_team.name }}</span>
+          <span class="vs-pill">VS</span>
+          <span class="club-name">{{ match.away_team.name }}</span>
+        </div>
+        <div class="fixture-footer">
+          {{ match.match_date.strftime('%a, %d %b %Y') }} &bull; {{ match.venue }}
+        </div>
+      </div>
+    {% else %}
+      <p class="muted-empty">No upcoming fixtures scheduled.</p>
+    {% endfor %}
+  </section>
+
+  <section class="profile-section">
+    <h3>Recent Results</h3>
+    {% for match in past_matches %}
+      <div class="fixture-card">
+        <div class="scoreboard-row">
+          <span class="club-name">{{ match.home_team.name }}</span>
+          {% if match.home_score is not none and match.away_score is not none %}
+            <span class="score-pill">{{ match.home_score }} - {{ match.away_score }}</span>
+          {% else %}
+            <span class="vs-pill">VS</span>
+          {% endif %}
+          <span class="club-name">{{ match.away_team.name }}</span>
+        </div>
+        <div class="fixture-footer">
+          {{ match.match_date.strftime('%d %b %Y') }}
+          {% if match.home_score is none %} &bull; <em>Score Pending</em>{% endif %}
+        </div>
+      </div>
+    {% else %}
+      <p class="muted-empty">No past matches recorded yet.</p>
+    {% endfor %}
+  </section>
+</main>
+ <footer class="site-footer">
+  <div class="footer-inner">
+    <p>MatchDay. Play. Connect. Compete.</p>
+    <div class="footer-links">
+      <a href="{{ url_for('home') }}">Dashboard</a>
+      <a href="{{ url_for('search_posts') }}">Find Match</a>
+      <a href="{{ url_for('inbox') }}">Inbox</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

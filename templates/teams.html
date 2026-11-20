@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teams - MatchDay</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=5) }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+<nav>
+  <div class="nav-brand">
+    <i class="fa-regular fa-futbol"></i>
+    <a href="{{ url_for('home') }}" class="brand">MATCHDAY</a>
+  </div>
+  <div>
+    <ul>
+      <li>
+       <a href="{{ url_for('inbox') }}" class="nav-notif-link" aria-label="Match Inbox">
+      <span class="notif-icon">&#128276;</span>
+      {% if pending_count > 0 %}
+      <sup class="notif-badge">{{ pending_count }}</sup>
+      {% endif %}
+      </a>
+      </li>
+       <li>
+  <a href="{{ url_for('profile') }}" aria-label="Account Profile">
+    <i class="fa-solid fa-user"></i>
+  </a>
+</li>
+      <li><a href="{{ url_for('search_teams') }}">Teams</a></li>
+    </ul>
+  </div>
+</nav>
+
+{% include "alerts.html" %}
+
+ <main class="container">
+  <div class="page-header">
+    <h2>Teams Directory</h2>
+    <p class="subtitle">Check club form, home grounds, and upcoming fixtures.</p>
+  </div>
+
+  <form method="GET" action="{{ url_for('search_teams') }}" class="team-search-bar">
+    <input type="text" name="q" value="{{ query or '' }}" placeholder="Search team name or area...">
+    <div class="search-actions">
+      <button type="submit" class="btn-primary">Search</button>
+      {% if query %}
+        <a href="{{ url_for('search_teams') }}" class="btn-reset">Clear</a>
+      {% endif %}
+    </div>
+  </form>
+
+  <div class="teams-grid">
+    {% for team in teams %}
+      <article class="team-card">
+        <div class="team-card-header">
+          <div>
+            <h3>
+              <a href="{{ url_for('team_profile', team_id=team.id) }}">{{ team.name }}</a>
+            </h3>
+            <span class="team-area">{{ team.home_area }}</span>
+          </div>
+          <span class="level-badge">{{ team.level }}</span>
+        </div>
+
+        <div class="team-tags">
+          <span class="info-chip">{{ team.format }}</span>
+          <span class="info-chip">{{ 'Home Pitch' if team.has_home_pitch else 'Away / Neutral' }}</span>
+        </div>
+
+        <a href="{{ url_for('team_profile', team_id=team.id) }}" class="btn-outline">
+          Inspect Team &rarr;
+        </a>
+      </article>
+    {% else %}
+      <div class="empty-box">No teams found matching your search.</div>
+    {% endfor %}
+  </div>
+</main>
+ <footer class="site-footer">
+  <div class="footer-inner">
+    <p>MatchDay. Play. Connect. Compete.</p>
+    <div class="footer-links">
+      <a href="{{ url_for('home') }}">Dashboard</a>
+      <a href="{{ url_for('search_posts') }}">Find Match</a>
+      <a href="{{ url_for('inbox') }}">Inbox</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
