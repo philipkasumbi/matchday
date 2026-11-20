@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
+  </head>
+<body>
+
+<!--  navbar-->
+<nav>
+  <div class="nav-brand">
+    <i class="fa-regular fa-futbol"></i>
+    <a href="{{ url_for('home') }}" class="brand">MATCHDAY</a>
+  </div>
+  <div>
+    <ul>
+      <li>
+       <a href="{{ url_for('inbox') }}" class="nav-notif-link" aria-label="Match Inbox">
+      <span class="notif-icon">&#128276;</span>
+      {% if pending_count > 0 %}
+      <sup class="notif-badge">{{ pending_count }}</sup>
+      {% endif %}
+      </a>
+      </li>
+     <li>
+  <a href="{{ url_for('profile') }}" aria-label="Account Profile">
+    <i class="fa-solid fa-user"></i>
+  </a>
+</li>
+    </ul>
+  </div>
+
+</nav>
+<main class="dashboard-container">
+  <!-- Header Card -->
+  <div class="profile-card">
+    <div class="card-info">
+      <span class="match-label">Captain Account</span>
+      <h3 class="greetings">{{ current_user.name }}</h3>
+      <p class="welcome-note">{{ current_user.email }}</p>
+    </div>
+
+    <div class="card-actions">
+      <a href="{{ url_for('logout') }}" class="btn btn-outline">Log Out</a>
+    </div>
+  </div>
+
+  <!-- Stats Summary -->
+  {% if team %}
+    <div class="confirmed-match-card">
+      <div class="match-card-top">
+        <span class="match-label">Team Overview</span>
+        <span class="status-pill">{{ team.format }}</span>
+      </div>
+      <h4>{{ team.name }}</h4>
+      <div class="match-meta">
+        <p>Home Area: {{ team.home_area }}</p>
+        <span class="divider">|</span>
+        <p>{{ played_matches_count }} Matches Played</p>
+        <span class="divider">|</span>
+        <p>{{ open_posts_count }} Open Slots</p>
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Update Account & Team Form -->
+  <div class="confirmed-match-card">
+    <h4 style="margin-bottom: 1rem;">Update Details</h4>
+    <form action="{{ url_for('edit_profile') }}" method="POST" class="profile-form">
+      <div class="form-group">
+        <label for="name">Captain Name</label>
+        <input type="text" id="name" name="name" value="{{ current_user.name }}" required>
+      </div>
+
+
+      {% if team %}
+        <div class="form-group">
+          <label for="team_name">Team Name</label>
+          <input type="text" id="team_name" name="team_name" value="{{ team.name }}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="home_area">Home Area</label>
+          <input type="text" id="home_area" name="home_area" value="{{ team.home_area }}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="format">Match Format</label>
+          <select id="format" name="format" required>
+            <option value="5-a-side" {% if team.format == '5-a-side' %}selected{% endif %}>5-a-side</option>
+            <option value="7-a-side" {% if team.format == '7-a-side' %}selected{% endif %}>7-a-side</option>
+            <option value="9-a-side" {% if team.format == '9-a-side' %}selected{% endif %}>9-a-side</option>
+            <option value="11-a-side" {% if team.format == '11-a-side' %}selected{% endif %}>11-a-side</option>
+          </select>
+        </div>
+      {% endif %}
+
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="confirmed-match-card danger-zone">
+    <div class="match-card-top">
+      <div>
+        <span class="match-label" style="color: #b91c1c;">Danger Zone</span>
+        <p class="welcome-note" style="margin-top: 0.25rem;">
+          Permanently delete your account, team profile, and all match records.
+        </p>
+      </div>
+      <form action="{{ url_for('delete_account') }}" method="POST"
+            onsubmit="return confirm('Are you sure? This will permanently delete your account, team, and all fixtures.');">
+        <button type="submit" class="btn-cancel-sm">Delete Account</button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p>MatchDay. Play. Connect. Compete.</p>
+    <div class="footer-links">
+      <a href="{{ url_for('home') }}">Dashboard</a>
+      <a href="{{ url_for('search_posts') }}">Find Match</a>
+      <a href="{{ url_for('inbox') }}">Inbox</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

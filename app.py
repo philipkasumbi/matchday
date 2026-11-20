@@ -114,6 +114,9 @@ class Match(db.Model):
 @app.route("/")
 def home():
     today = date.today()
+    if not current_user.team:
+        flash("Please create your team profile first.")
+        return redirect(url_for("register_team"))
 
     accepted_matches = MatchRequest.query.join(AvailabilityPost).filter(
         MatchRequest.status == "ACCEPTED",
@@ -518,6 +521,111 @@ def inject_pending_count():
         return dict(pending_count=count)
     return dict(pending_count=0)
 
+# profile
+@app.route("/profile")
+@login_required
+def profile():
+    team = current_user.team
+    open_posts_count = 0
+    played_matches_count = 0
+
+    if team:
+        open_posts_count = AvailabilityPost.query.filter_by(
+            team_id=team.id,
+            status="OPEN"
+        ).count()
+
+        played_matches_count = (
+            Match.query
+            .join(MatchRequest, Match.request_id == MatchRequest.id)
+            .join(AvailabilityPost, MatchRequest.post_id == AvailabilityPost.id)
+            .filter(
+                db.or_(
+                    MatchRequest.requesting_team_id == team.id,
+                    AvailabilityPost.team_id == team.id
+                ),
+                AvailabilityPost.date < datetime.now()
+            )
+            .count()
+        )
+
+    return render_template(
+        "profile.html",
+        team=team,
+        open_posts_count=open_posts_count,
+        played_matches_count=played_matches_count
+    )
+
+# edit
+@app.route("/profile/edit", methods=["POST"])
+@login_required
+def edit_profile():
+    name = request.form.get("name", "").strip()
+
+    if not name:
+        flash("Name cannot be empty.")
+        return redirect(url_for("profile"))
+
+    current_user.name = name
+
+    if current_user.team:
+        team_name = request.form.get("team_name", "").strip()
+        home_area = request.form.get("home_area", "").strip()
+        match_format = request.form.get("format", "").strip()
+
+        if not team_name or not home_area or not match_format:
+            flash("All team fields are required.")
+            return redirect(url_for("profile"))
+
+        current_user.team.name = team_name
+        current_user.team.home_area = home_area
+        current_user.team.format = match_format
+
+    db.session.commit()
+    flash("Profile updated successfully.")
+    return redirect(url_for("profile"))
+
+# delete account
+@app.route("/delete_account", methods=["POST"])
+@login_required
+def delete_account():
+    user = current_user
+    team = user.team
+
+    if team:
+        team_post_ids = [p.id for p in AvailabilityPost.query.filter_by(team_id=team.id).all()]
+        related_requests = MatchRequest.query.filter(
+            db.or_(
+                MatchRequest.requesting_team_id == team.id,
+                MatchRequest.post_id.in_(team_post_ids)
+            )
+        ).all()
+
+        related_request_ids = [r.id for r in related_requests]
+
+        if related_request_ids:
+            Match.query.filter(Match.request_id.in_(related_request_ids)).delete(synchronize_session=False)
+            MatchRequest.query.filter(MatchRequest.id.in_(related_request_ids)).delete(synchronize_session=False)
+
+        AvailabilityPost.query.filter_by(team_id=team.id).delete(synchronize_session=False)
+        db.session.delete(team)
+
+    # 4. Log out and delete the user
+    logout_user()
+    db.session.delete(user)
+    db.session.commit()
+
+    flash("Your account and team data have been permanently deleted.")
+    return redirect(url_for("register"))
+
+
+# logout
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    # flash("You have been logged out.")
+    return redirect(url_for("login"))
 
 with app.app_context():
     db.create_all()
