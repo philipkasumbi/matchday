@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Alerts</title>
+</head>
+<body>
+<div class="flash-wrapper">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="simple-alert alert-{{ category }}">
+          <span>{{ message }}</span>
+          <button type="button" class="alert-close" onclick="this.parentElement.remove()" aria-label="Dismiss">&times;</button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+</div>
+
+<script>
+  setTimeout(() => {
+    document.querySelectorAll('.simple-alert').forEach(alert => {
+      alert.style.opacity = '0';
+      setTimeout(() => alert.remove(), 300);
+    });
+  }, 4000);
+</script>
+</body>
+</html>

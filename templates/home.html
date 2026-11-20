@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+   <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=2) }}">
      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.3.1/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
   </head>
   <body>
@@ -33,17 +33,7 @@
   </div>
 
 </nav>
-
-<div class="flash-wrapper">
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        {% for message in messages %}
-          <div class="simple-alert">{{ message }}</div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-  </div>
-
+{% include "alerts.html" %}
 <!-- Welcome section -->
 <main class="dashboard-container">
   <div class="profile-card">

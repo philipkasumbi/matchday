@@ -33,6 +33,7 @@
   </div>
 </nav>
 
+{% include "alerts.html" %}
 
 <main class="requests-container">
   <div class="requests-header">
@@ -42,6 +43,26 @@
     </div>
     <a href="{{ url_for('team_posts') }}" class="btn-inbox-accept">+ Post Availability</a>
   </div>
+
+ <form method="GET" action="{{ url_for('search_posts') }}" class="search-filter-bar">
+  <div class="filter-field filter-location">
+    <i class="fa-solid fa-location-dot filter-icon"></i>
+    <input
+      type="text"
+      name="area"
+      value="{{ request.args.get('area', '') }}"
+      placeholder="Filter by home area (e.g. Kutha, Kakeani)..."
+      aria-label="Filter by home area"
+    >
+  </div>
+
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-primary">Filter</button>
+    {% if request.args.get('area') %}
+      <a href="{{ url_for('search_posts') }}" class="btn btn-outline">Reset</a>
+    {% endif %}
+  </div>
+</form>
 
   {% if posts %}
     <div class="requests-panel">

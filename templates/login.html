@@ -4,9 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MatchDay Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css', v=2) }}">
 </head>
 <body>
+
+{% include "alerts.html" %}
 
   <main class="simple-auth-container">
     <div class="simple-auth-header">
@@ -35,5 +37,14 @@
     </p>
   </main>
 
+<script>
+  setTimeout(() => {
+    const alerts = document.querySelectorAll('.simple-alert');
+    alerts.forEach(alert => {
+      alert.style.opacity = '0';
+      setTimeout(() => alert.remove(), 300);
+    });
+  }, 4000);
+</script>
 </body>
 </html>

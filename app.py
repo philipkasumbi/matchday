@@ -158,7 +158,8 @@ def register():
         # check if number exists
         existing_user = User.query.filter_by(phone=phone).first()
         if existing_user:
-            return "This phone number is already registered!"
+            flash("This phone number is already registered!","error")
+            return redirect(url_for('register'))
 
         hashed_password = generate_password_hash(password)
 
@@ -171,7 +172,8 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        return "Registration Successful!"
+        flash("Registration Successful!","success")
+        return redirect(url_for('login'))
 
     return render_template("register.html")
 
@@ -187,11 +189,13 @@ def login():
             password_match = check_password_hash(existing_user.password_hash, password)
             if password_match:
                 login_user(existing_user)
+                flash(f"Welcome back, {existing_user.name}!", "success")
                 return redirect(url_for("home"))
             else:
-                return "Incorrect Password"
+                flash("Incorrect password. Please try again.", "error")
+                return redirect(url_for("login"))
         else:
-            flash("User doesn't Exist")
+            flash("User doesn't Exist","error")
             return redirect(url_for("register"))
 
 
@@ -231,7 +235,8 @@ def register_team():
 
 
         if current_user.team:
-            return "The team is already Registered"
+            flash("The team is already Registered","error")
+            return redirect(url_for('register_team'))
 
         team = Team(
             name = team_name,
@@ -244,7 +249,7 @@ def register_team():
 
         db.session.add(team)
         db.session.commit()
-        flash("You have successfully registered your team")
+        flash("You have successfully registered your team","success")
         return  redirect(url_for("home"))
 
     return render_template("register_team.html")
@@ -268,9 +273,9 @@ def team_posts():
             db.session.add(post)
             db.session.commit()
 
-            flash("Post Created successfully")
-            return redirect(url_for("home"))
-        flash("Register a Team First")
+            flash("Post Created successfully","success")
+            return redirect(url_for("team_posts"))
+        flash("Register a Team First","error")
         return redirect(url_for("register_team"))
 
     return render_template("posts.html")
@@ -296,17 +301,21 @@ def request_match(post_id):
                    db.session.add(request)
                    db.session.commit()
 
-                   flash("Your match request has been sent successfully!")
-                   return redirect(url_for("home"))
+                   flash("Your match request has been sent successfully!","success")
+                   return redirect(url_for("search_posts"))
 
                else:
-                   return "Your team has already requested this match."
+                   flash("Your team has already requested this match.","error")
+                   return redirect(url_for('search_posts'))
            else:
-               return "You cannot request your own team's post."
+               flash("You cannot request your own team's post.","error")
+               return redirect(url_for('search_posts'))
        else:
-           return "You need to register a team before requesting a match."
+           flash("You need to register a team before requesting a match.","error")
+           return redirect(url_for('search_posts'))
    else:
-       return "Ooops the post is not open for requesting"
+       flash("Ooops the post is not open for requesting","error")
+       return redirect(url_for('search_posts'))
 
 # accept match requests
 @app.route("/inbox")
@@ -345,7 +354,7 @@ def inbox():
                 declined_requests.append(request)
 
         return render_template("inbox.html",pending_requests=pending_requests,accepted_requests=accepted_requests,declined_requests=declined_requests)
-    flash("You don't have a registered team")
+    flash("You don't have a registered team","error")
     return redirect(url_for("register_team"))
 
 
@@ -356,13 +365,16 @@ def accept_match(request_id):
     match_req = db.session.get(MatchRequest, request_id)
 
     if not match_req:
-        return "Match request not found"
+       flash("Match request not found")
+       return redirect(url_for("inbox"))
 
     if not current_user.team or match_req.post.team != current_user.team:
-        return "You are not authorized to accept this request"
+        flash("You are not authorized to accept this request")
+        return redirect(url_for("inbox"))
 
     if match_req.status != "PENDING" or match_req.post.status != "OPEN":
-        return "This request is no longer available"
+        flash("This request is no longer available")
+        return redirect(url_for("inbox"))
 
     match_req.status = "ACCEPTED"
 
@@ -383,7 +395,7 @@ def accept_match(request_id):
     match_req.post.status = "CLOSED"
     db.session.commit()
 
-    flash("Match request accepted successfully!")
+    flash("Match request accepted successfully!","success")
     return redirect(url_for("inbox"))
 
 
@@ -424,14 +436,16 @@ def my_requests():
 
         return render_template("my_requests.html", team_requests=all_team_requests)
 
-    return "You need to register a team first"
+    flash("You need to register a team first","error")
+    return redirect(url_for("register_team"))
 
 # history page
 @app.route("/history")
 @login_required
 def history():
     if not current_user.team:
-        return redirect(url_for("create_team"))
+        flash("Register a team First")
+        return redirect(url_for("register_team"))
 
     today = date.today()
 
@@ -457,25 +471,25 @@ def record_result(match_id):
     match = db.session.get(Match, match_id)
 
     if not match:
-        flash("Match not found.")
+        flash("Match not found.","error")
         return redirect(url_for("history"))
 
     if not current_user.team or current_user.team.id not in [match.home_team_id, match.away_team_id]:
-        flash("You are not authorized to record this result.")
+        flash("You are not authorized to record this result.","error")
         return redirect(url_for("history"))
 
     home_score = request.form.get("home_score", type=int)
     away_score = request.form.get("away_score", type=int)
 
     if home_score is None or away_score is None or home_score < 0 or away_score < 0:
-        flash("Please enter valid scores (0 or higher).")
+        flash("Please enter valid scores (0 or higher).","error")
         return redirect(url_for("history"))
 
     match.home_score = home_score
     match.away_score = away_score
     db.session.commit()
 
-    flash("Match result saved!")
+    flash("Match result saved!","success")
     return redirect(url_for("history"))
 
 @app.route("/cancel_match/<int:request_id>", methods=["POST"])
@@ -483,14 +497,14 @@ def record_result(match_id):
 def cancel_match(request_id):
     match_request = db.session.get(MatchRequest, request_id)
     if not match_request:
-        flash("Match request not found.")
+        flash("Match request not found.","error")
         return redirect(url_for("home"))
 
     post = match_request.post
     user_team_id = current_user.team.id
 
     if post.team_id != user_team_id and match_request.requesting_team_id != user_team_id:
-        flash("You are not authorized to cancel this match.")
+        flash("You are not authorized to cancel this match.","error")
         return redirect(url_for("home"))
 
     match_record = Match.query.filter_by(request_id=match_request.id).first()
@@ -502,7 +516,7 @@ def cancel_match(request_id):
     post.status = "OPEN" if post.date > datetime.now() else "CANCELLED"
 
     db.session.commit()
-    flash("Confirmed match has been cancelled.")
+    flash("Confirmed match has been cancelled.","error")
     return redirect(url_for("home"))
 
 @app.context_processor
@@ -563,7 +577,7 @@ def edit_profile():
     name = request.form.get("name", "").strip()
 
     if not name:
-        flash("Name cannot be empty.")
+        flash("Name cannot be empty.","error")
         return redirect(url_for("profile"))
 
     current_user.name = name
@@ -574,7 +588,7 @@ def edit_profile():
         match_format = request.form.get("format", "").strip()
 
         if not team_name or not home_area or not match_format:
-            flash("All team fields are required.")
+            flash("All team fields are required.","error")
             return redirect(url_for("profile"))
 
         current_user.team.name = team_name
@@ -582,7 +596,7 @@ def edit_profile():
         current_user.team.format = match_format
 
     db.session.commit()
-    flash("Profile updated successfully.")
+    flash("Profile updated successfully.","success")
     return redirect(url_for("profile"))
 
 # delete account
@@ -615,7 +629,7 @@ def delete_account():
     db.session.delete(user)
     db.session.commit()
 
-    flash("Your account and team data have been permanently deleted.")
+    flash("Your account and team data have been permanently deleted.","success")
     return redirect(url_for("register"))
 
 
@@ -624,7 +638,7 @@ def delete_account():
 @login_required
 def logout():
     logout_user()
-    # flash("You have been logged out.")
+    flash("You have been logged out.","success")
     return redirect(url_for("login"))
 
 with app.app_context():
